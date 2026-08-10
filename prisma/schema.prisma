@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  RECEPTIONIST
+  TEACHER
+  ACCOUNTANT
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  FOLLOW_UP
+  ADMITTED
+  LOST
+}
+
+enum ExperienceLevel {
+  NONE
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  REGISTRATION
+  COURSE
+  EVENT
+  EXAM
+  OTHER
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  courses    Course[]
+  batches    Batch[]
+  teachers   Teacher[]
+  students   Student[]
+  parents    Parent[]
+  enquiries  Enquiry[]
+  payments   Payment[]
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  email          String
+  role           UserRole
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+}
+
+model Course {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  batches      Batch[]
+
+  @@index([organizationId])
+}
+
+model Teacher {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  phone          String?
+  email          String?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  batches      Batch[]
+
+  @@index([organizationId])
+}
+
+model Batch {
+  id             String       @id @default(cuid())
+  organizationId String
+  courseId       String
+  teacherId      String?
+  name           String
+  capacity       Int?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  course       Course       @relation(fields: [courseId], references: [id])
+  teacher      Teacher?     @relation(fields: [teacherId], references: [id])
+  students     Student[]
+
+  @@index([organizationId])
+  @@index([courseId])
+  @@index([teacherId])
+}
+
+model Parent {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  phone          String
+  email          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  students     Student[]
+  enquiries    Enquiry[]
+
+  @@index([organizationId])
+  @@index([phone])
+}
+
+model Student {
+  id             String       @id @default(cuid())
+  organizationId String
+  parentId       String?
+  batchId        String?
+  firstName      String
+  lastName       String?
+  dateOfBirth    DateTime?
+  phone          String?
+  email          String?
+  experience     ExperienceLevel?
+  photoUrl       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  parent       Parent?      @relation(fields: [parentId], references: [id])
+  batch        Batch?       @relation(fields: [batchId], references: [id])
+  payments     Payment[]
+
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([batchId])
+}
+
+model Enquiry {
+  id             String          @id @default(cuid())
+  organizationId String
+  parentId       String?
+  studentName    String
+  parentName     String?
+  phone          String
+  email          String?
+  interestedIn   String?
+  experience     ExperienceLevel?
+  status         EnquiryStatus   @default(NEW)
+  followUpDate   DateTime?
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  parent       Parent?      @relation(fields: [parentId], references: [id])
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([phone])
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  organizationId String
+  studentId      String
+  type           PaymentType
+  amount         Decimal       @db.Decimal(10, 2)
+  status         PaymentStatus @default(PENDING)
+  paidAt         DateTime?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  student      Student      @relation(fields: [studentId], references: [id])
+
+  @@index([organizationId])
+  @@index([studentId])
+  @@index([status])
+}
