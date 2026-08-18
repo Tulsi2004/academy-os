@@ -1,0 +1,19 @@
+"use client";
+
+import { useState, type ReactNode } from "react";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Topbar } from "@/components/layout/topbar";
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <Sidebar mobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+      <div className="flex min-h-screen flex-col lg:pl-64">
+        <Topbar onMenuClick={() => setMobileNavOpen(true)} />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
+  );
+}
