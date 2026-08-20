@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/app-shell";
+import { requireUser } from "@/lib/auth/session";
 
-export default function MainLayout({ children }: { children: ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+export default async function MainLayout({ children }: { children: ReactNode }) {
+  const user = await requireUser();
+
+  return <AppShell user={user}>{children}</AppShell>;
 }
