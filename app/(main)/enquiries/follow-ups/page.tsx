@@ -4,6 +4,8 @@ import { formatFollowUp, type FollowUpTone } from "@/lib/enquiries";
 import { EnquiriesHeader } from "@/components/enquiries/enquiries-header";
 import { EnquiriesTable, type EnquiryRow } from "@/components/enquiries/enquiries-table";
 
+export const dynamic = "force-dynamic";
+
 const GROUPS: { tone: FollowUpTone; label: string }[] = [
   { tone: "overdue", label: "Overdue" },
   { tone: "today", label: "Today" },
