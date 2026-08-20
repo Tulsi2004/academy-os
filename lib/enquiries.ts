@@ -9,13 +9,18 @@ export const ENQUIRY_STATUS_LABELS: Record<EnquiryStatus, string> = {
   LOST: "Lost",
 };
 
+/*
+  Colors reuse academy-os-landing's "pop" accent palette (pop-blue, pop-orange,
+  pop-purple/primary, pop-green, pop-coral) so status colors read as the same
+  brand across the marketing site and the dashboard, not generic Tailwind hues.
+*/
 export const ENQUIRY_STATUS_BADGE_STYLES: Record<EnquiryStatus, string> = {
-  NEW: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-  CONTACTED: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300",
-  INTERESTED: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
-  FOLLOW_UP: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300",
-  ADMITTED: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
-  LOST: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300",
+  NEW: "bg-muted text-muted-foreground",
+  CONTACTED: "bg-[#3056d1]/10 text-[#3056d1] dark:bg-[#6d8bef]/15 dark:text-[#6d8bef]",
+  INTERESTED: "bg-[#e9974b]/15 text-[#e9974b] dark:bg-[#eba86a]/15 dark:text-[#eba86a]",
+  FOLLOW_UP: "bg-primary/10 text-primary",
+  ADMITTED: "bg-[#27af90]/15 text-[#27af90] dark:bg-[#4dc9a8]/15 dark:text-[#4dc9a8]",
+  LOST: "bg-[#f87483]/15 text-[#f87483] dark:bg-[#f8919c]/15 dark:text-[#f8919c]",
 };
 
 export const ENQUIRY_STATUS_OPTIONS = Object.values(EnquiryStatus);
@@ -60,11 +65,11 @@ export function formatFollowUp(followUpDate: Date | null): {
 }
 
 export const FOLLOW_UP_TONE_STYLES: Record<FollowUpTone, string> = {
-  none: "text-zinc-400 dark:text-zinc-500",
-  overdue: "text-rose-600 dark:text-rose-400 font-medium",
-  today: "text-indigo-600 dark:text-indigo-400 font-medium",
-  tomorrow: "text-zinc-700 dark:text-zinc-300",
-  upcoming: "text-zinc-500 dark:text-zinc-400",
+  none: "text-muted-foreground",
+  overdue: "text-[#f87483] dark:text-[#f8919c] font-medium",
+  today: "text-primary font-medium",
+  tomorrow: "text-foreground",
+  upcoming: "text-muted-foreground",
 };
 
 export function formatDateTime(date: Date) {

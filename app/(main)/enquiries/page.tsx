@@ -63,8 +63,8 @@ function FilterChip({ href, active, label }: { href: string; active: boolean; la
       href={href}
       className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
         active
-          ? "border-indigo-600 bg-indigo-600 text-white"
-          : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-muted-foreground hover:bg-muted"
       }`}
     >
       {label}

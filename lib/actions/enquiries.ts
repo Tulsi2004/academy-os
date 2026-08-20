@@ -35,7 +35,12 @@ const createEnquirySchema = z.object({
     .transform((value) => (value ? value : undefined))
     .pipe(z.string().email("Enter a valid email").optional()),
   interestedIn: optionalText,
-  experience: z.enum(ExperienceLevel).optional(),
+  experience: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value ? value : undefined))
+    .pipe(z.enum(ExperienceLevel).optional()),
   notes: optionalText,
   followUpDate: optionalDate,
 });

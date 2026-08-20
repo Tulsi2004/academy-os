@@ -15,7 +15,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-zinc-200 lg:bg-white dark:lg:border-zinc-800 dark:lg:bg-zinc-900">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-card">
         <SidebarContent pathname={pathname} onNavigate={onClose} />
       </aside>
 
@@ -30,7 +30,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           onClick={onClose}
         />
         <aside
-          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-zinc-200 bg-white transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900 ${
+          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-border bg-card transition-transform duration-200 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -38,7 +38,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="absolute right-3 top-3 rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
@@ -58,24 +58,20 @@ function SidebarContent({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-zinc-200 px-4 dark:border-zinc-800">
-        <LogoMarkIcon className="h-8 w-8 shrink-0 text-indigo-600 dark:text-indigo-400" />
+      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-border px-4">
+        <LogoMarkIcon className="h-8 w-8 shrink-0 text-primary" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-            Academy OS
-          </p>
-          <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-            Your Academy
-          </p>
+          <p className="truncate text-sm font-semibold text-foreground">Academy OS</p>
+          <p className="truncate text-xs text-muted-foreground">Your Academy</p>
         </div>
       </div>
 
       <button
         type="button"
-        className="mx-3 mt-3 flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800/60"
+        className="mx-3 mt-3 flex items-center justify-between rounded-lg border border-border px-3 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
       >
         <span className="truncate">Your Academy</span>
-        <ChevronDownIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+        <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
       </button>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -91,8 +87,8 @@ function SidebarContent({
                   aria-current={active ? "page" : undefined}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
-                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
@@ -104,23 +100,23 @@ function SidebarContent({
         </ul>
       </nav>
 
-      <div className="shrink-0 border-t border-zinc-200 p-3 dark:border-zinc-800">
+      <div className="shrink-0 border-t border-border p-3">
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60"
+          className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-muted"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-medium text-white">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
             A
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+            <span className="block truncate text-sm font-medium text-foreground">
               Admin User
             </span>
-            <span className="block truncate text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="block truncate text-xs text-muted-foreground">
               admin@academy.os
             </span>
           </span>
-          <ChevronDownIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+          <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
         </button>
       </div>
     </div>

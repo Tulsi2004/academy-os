@@ -24,24 +24,22 @@ export default async function EnquiryDetailPage({
       <div>
         <Link
           href="/enquiries"
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           ← Back to enquiries
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {enquiry.studentName}
-          </h2>
+          <h2 className="text-2xl font-semibold text-foreground">{enquiry.studentName}</h2>
           <StatusBadge status={enquiry.status} />
         </div>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           Enquiry received {formatDateTime(enquiry.createdAt)}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="h-fit rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Details</h3>
+        <div className="h-fit rounded-xl border border-border bg-card p-5">
+          <h3 className="text-sm font-semibold text-foreground">Details</h3>
           <dl className="mt-4 space-y-4 text-sm">
             <DetailRow label="Phone" value={enquiry.phone} />
             <DetailRow label="Email" value={enquiry.email} />
@@ -55,10 +53,8 @@ export default async function EnquiryDetailPage({
           </dl>
         </div>
 
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-            Update enquiry
-          </h3>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h3 className="text-sm font-semibold text-foreground">Update enquiry</h3>
           <div className="mt-4">
             <EnquiryUpdateForm enquiry={enquiry} />
           </div>
@@ -71,8 +67,8 @@ export default async function EnquiryDetailPage({
 function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <dt className="text-zinc-500 dark:text-zinc-400">{label}</dt>
-      <dd className="text-right font-medium text-zinc-900 dark:text-zinc-50">{value || "—"}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-right font-medium text-foreground">{value || "—"}</dd>
     </div>
   );
 }

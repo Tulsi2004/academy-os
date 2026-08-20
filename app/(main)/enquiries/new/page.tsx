@@ -7,14 +7,12 @@ export default function NewEnquiryPage() {
       <div>
         <Link
           href="/enquiries"
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           ← Back to enquiries
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          New Enquiry
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <h2 className="mt-2 text-2xl font-semibold text-foreground">New Enquiry</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Capture the details of a prospective student.
         </p>
       </div>

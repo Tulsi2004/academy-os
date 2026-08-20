@@ -46,6 +46,13 @@ enum PaymentType {
   OTHER
 }
 
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  DROPPED
+}
+
 model Organization {
   id        String   @id @default(cuid())
   name      String
@@ -53,14 +60,15 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users      User[]
-  courses    Course[]
-  batches    Batch[]
-  teachers   Teacher[]
-  students   Student[]
-  parents    Parent[]
-  enquiries  Enquiry[]
-  payments   Payment[]
+  users       User[]
+  courses     Course[]
+  batches     Batch[]
+  teachers    Teacher[]
+  students    Student[]
+  parents     Parent[]
+  enquiries   Enquiry[]
+  payments    Payment[]
+  enrollments Enrollment[]
 }
 
 model User {
@@ -69,10 +77,12 @@ model User {
   name           String
   email          String
   role           UserRole
+  supabaseUserId String?      @unique
+  active         Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -87,9 +97,10 @@ model Course {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   batches      Batch[]
 
+  @@unique([organizationId, id])
   @@index([organizationId])
 }
 
@@ -103,9 +114,10 @@ model Teacher {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   batches      Batch[]
 
+  @@unique([organizationId, id])
   @@index([organizationId])
 }
 
@@ -120,11 +132,12 @@ model Batch {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  course       Course       @relation(fields: [courseId], references: [id])
-  teacher      Teacher?     @relation(fields: [teacherId], references: [id])
-  students     Student[]
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  course       Course        @relation(fields: [organizationId, courseId], references: [organizationId, id])
+  teacher      Teacher?      @relation(fields: [organizationId, teacherId], references: [organizationId, id])
+  enrollments  Enrollment[]
 
+  @@unique([organizationId, id])
   @@index([organizationId])
   @@index([courseId])
   @@index([teacherId])
@@ -139,10 +152,11 @@ model Parent {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   students     Student[]
   enquiries    Enquiry[]
 
+  @@unique([organizationId, id])
   @@index([organizationId])
   @@index([phone])
 }
@@ -151,7 +165,6 @@ model Student {
   id             String       @id @default(cuid())
   organizationId String
   parentId       String?
-  batchId        String?
   firstName      String
   lastName       String?
   dateOfBirth    DateTime?
@@ -162,13 +175,34 @@ model Student {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  parent       Parent?      @relation(fields: [parentId], references: [id])
-  batch        Batch?       @relation(fields: [batchId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent       Parent?      @relation(fields: [organizationId, parentId], references: [organizationId, id])
   payments     Payment[]
+  enrollments  Enrollment[]
 
+  @@unique([organizationId, id])
   @@index([organizationId])
   @@index([parentId])
+}
+
+model Enrollment {
+  id             String           @id @default(cuid())
+  organizationId String
+  studentId      String
+  batchId        String
+  status         EnrollmentStatus @default(ACTIVE)
+  enrolledAt     DateTime         @default(now())
+  endedAt        DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  student      Student      @relation(fields: [organizationId, studentId], references: [organizationId, id])
+  batch        Batch        @relation(fields: [organizationId, batchId], references: [organizationId, id])
+
+  @@unique([studentId, batchId])
+  @@index([organizationId])
+  @@index([studentId])
   @@index([batchId])
 }
 
@@ -188,9 +222,11 @@ model Enquiry {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  parent       Parent?      @relation(fields: [parentId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent       Parent?      @relation(fields: [organizationId, parentId], references: [organizationId, id])
+  payments     Payment[]
 
+  @@unique([organizationId, id])
   @@index([organizationId])
   @@index([status])
   @@index([phone])
@@ -199,7 +235,8 @@ model Enquiry {
 model Payment {
   id             String        @id @default(cuid())
   organizationId String
-  studentId      String
+  studentId      String?
+  enquiryId      String?
   type           PaymentType
   amount         Decimal       @db.Decimal(10, 2)
   status         PaymentStatus @default(PENDING)
@@ -208,10 +245,12 @@ model Payment {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  student      Student      @relation(fields: [studentId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  student      Student?     @relation(fields: [organizationId, studentId], references: [organizationId, id])
+  enquiry      Enquiry?     @relation(fields: [organizationId, enquiryId], references: [organizationId, id])
 
   @@index([organizationId])
   @@index([studentId])
+  @@index([enquiryId])
   @@index([status])
 }

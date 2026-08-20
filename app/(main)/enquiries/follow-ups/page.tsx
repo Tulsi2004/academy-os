@@ -48,9 +48,9 @@ export default async function FollowUpsPage() {
         <div className="space-y-8">
           {GROUPS.filter((group) => (grouped.get(group.tone)?.length ?? 0) > 0).map((group) => (
             <div key={group.tone} className="space-y-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 {group.label}{" "}
-                <span className="text-zinc-400 dark:text-zinc-500">
+                <span className="text-muted-foreground/70">
                   ({grouped.get(group.tone)?.length})
                 </span>
               </h3>

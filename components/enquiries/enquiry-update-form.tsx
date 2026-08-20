@@ -1,9 +1,22 @@
 "use client";
 
 import { useActionState } from "react";
+import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react";
 import type { Enquiry } from "@/generated/prisma/client";
 import { updateEnquiry, type EnquiryActionState } from "@/lib/actions/enquiries";
 import { ENQUIRY_STATUS_LABELS, ENQUIRY_STATUS_OPTIONS } from "@/lib/enquiries";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 const initialState: EnquiryActionState = {};
 
@@ -24,14 +37,16 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
           tree — that shift was causing the browser to lose the just-submitted form values. */}
       <div>
         {state.error && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
-            {state.error}
-          </div>
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
         )}
         {state.success && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-            Enquiry updated.
-          </div>
+          <Alert className="border-[#27af90]/30 bg-[#27af90]/10 text-[#27af90] dark:text-[#4dc9a8] [&_svg]:text-current">
+            <CheckCircle2Icon />
+            <AlertDescription className="text-current">Enquiry updated.</AlertDescription>
+          </Alert>
         )}
       </div>
 
@@ -46,62 +61,57 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
       <div key={enquiry.updatedAt.getTime()} className="space-y-5">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="status" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <Label htmlFor="status" className="mb-1.5">
               Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              defaultValue={enquiry.status}
-              className="form-input"
-            >
-              {ENQUIRY_STATUS_OPTIONS.map((status) => (
-                <option key={status} value={status}>
-                  {ENQUIRY_STATUS_LABELS[status]}
-                </option>
-              ))}
-            </select>
+            </Label>
+            <Select name="status" defaultValue={enquiry.status}>
+              <SelectTrigger id="status" className="w-full">
+                <SelectValue>
+                  {(value: string | null) =>
+                    value ? ENQUIRY_STATUS_LABELS[value as keyof typeof ENQUIRY_STATUS_LABELS] : ""
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {ENQUIRY_STATUS_OPTIONS.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {ENQUIRY_STATUS_LABELS[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label
-              htmlFor="followUpDate"
-              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
+            <Label htmlFor="followUpDate" className="mb-1.5">
               Follow-up date
-            </label>
-            <input
+            </Label>
+            <Input
               id="followUpDate"
               name="followUpDate"
               type="date"
               defaultValue={toDateInputValue(enquiry.followUpDate)}
-              className="form-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="notes" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <Label htmlFor="notes" className="mb-1.5">
             Notes
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="notes"
             name="notes"
             rows={5}
             defaultValue={enquiry.notes ?? ""}
-            className="form-input"
             placeholder="Add context for the team — what was discussed, next steps, etc."
           />
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save changes"}
-      </button>
+      </Button>
     </form>
   );
 }

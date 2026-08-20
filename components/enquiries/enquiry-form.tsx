@@ -2,8 +2,21 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { AlertCircleIcon } from "lucide-react";
 import { createEnquiry, type EnquiryActionState } from "@/lib/actions/enquiries";
 import { EXPERIENCE_LABELS, EXPERIENCE_OPTIONS } from "@/lib/enquiries";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 const initialState: EnquiryActionState = {};
 
@@ -13,96 +26,73 @@ export function EnquiryForm() {
   return (
     <form action={formAction} className="max-w-2xl space-y-5">
       {state.error && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
-          {state.error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircleIcon />
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field label="Student name" htmlFor="studentName" required>
-          <input
-            id="studentName"
-            name="studentName"
-            required
-            className="form-input"
-            placeholder="Asha Kumar"
-          />
+          <Input id="studentName" name="studentName" required placeholder="Asha Kumar" />
         </Field>
 
         <Field label="Parent / guardian name" htmlFor="parentName">
-          <input id="parentName" name="parentName" className="form-input" placeholder="Optional" />
+          <Input id="parentName" name="parentName" placeholder="Optional" />
         </Field>
 
         <Field label="Phone" htmlFor="phone" required>
-          <input
-            id="phone"
-            name="phone"
-            required
-            type="tel"
-            className="form-input"
-            placeholder="98xxxxxxxx"
-          />
+          <Input id="phone" name="phone" required type="tel" placeholder="98xxxxxxxx" />
         </Field>
 
         <Field label="Email" htmlFor="email">
-          <input
-            id="email"
-            name="email"
-            type="email"
-            className="form-input"
-            placeholder="Optional"
-          />
+          <Input id="email" name="email" type="email" placeholder="Optional" />
         </Field>
 
         <Field label="Interested in" htmlFor="interestedIn">
-          <input
-            id="interestedIn"
-            name="interestedIn"
-            className="form-input"
-            placeholder="e.g. Bharatanatyam"
-          />
+          <Input id="interestedIn" name="interestedIn" placeholder="e.g. Bharatanatyam" />
         </Field>
 
         <Field label="Experience" htmlFor="experience">
-          <select id="experience" name="experience" defaultValue="" className="form-input">
-            <option value="">Not specified</option>
-            {EXPERIENCE_OPTIONS.map((level) => (
-              <option key={level} value={level}>
-                {EXPERIENCE_LABELS[level]}
-              </option>
-            ))}
-          </select>
+          <Select name="experience">
+            <SelectTrigger id="experience" className="w-full">
+              <SelectValue placeholder="Not specified">
+                {(value: string | null) =>
+                  value ? EXPERIENCE_LABELS[value as keyof typeof EXPERIENCE_LABELS] : "Not specified"
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {EXPERIENCE_OPTIONS.map((level) => (
+                <SelectItem key={level} value={level}>
+                  {EXPERIENCE_LABELS[level]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
 
         <Field label="Follow-up date" htmlFor="followUpDate">
-          <input id="followUpDate" name="followUpDate" type="date" className="form-input" />
+          <Input id="followUpDate" name="followUpDate" type="date" />
         </Field>
       </div>
 
       <Field label="Notes" htmlFor="notes">
-        <textarea
+        <Textarea
           id="notes"
           name="notes"
           rows={4}
-          className="form-input"
           placeholder="Anything the team should know about this enquiry"
         />
       </Field>
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" disabled={pending} size="lg">
           {pending ? "Saving…" : "Create Enquiry"}
-        </button>
-        <Link
-          href="/enquiries"
-          className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
+        </Button>
+        <Button variant="ghost" size="lg" nativeButton={false} render={<Link href="/enquiries" />}>
           Cancel
-        </Link>
+        </Button>
       </div>
     </form>
   );
@@ -121,10 +111,10 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <Label htmlFor={htmlFor} className="mb-1.5">
         {label}
-        {required && <span className="text-rose-500"> *</span>}
-      </label>
+        {required && <span className="text-destructive"> *</span>}
+      </Label>
       {children}
     </div>
   );
