@@ -1,18 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
 import { BellIcon, MenuIcon, SearchIcon } from "@/components/layout/icons";
 import { matchNavLink, navLinks } from "@/components/layout/nav-links";
-import { logout } from "@/lib/actions/auth";
-import type { SessionUser } from "@/lib/auth/session";
 
 type TopbarProps = {
   onMenuClick: () => void;
-  user: SessionUser;
 };
 
-export function Topbar({ onMenuClick, user }: TopbarProps) {
+export function Topbar({ onMenuClick }: TopbarProps) {
   const pathname = usePathname();
   const activeLink = navLinks.find((link) => matchNavLink(pathname, link.href));
 
@@ -47,28 +44,7 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
           <BellIcon className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
         </button>
-        <div className="ml-1 flex items-center gap-2 border-l border-border pl-2.5 sm:ml-2 sm:pl-3">
-          <span className="hidden text-right sm:block">
-            <span className="block text-sm leading-none font-medium text-foreground">
-              {user.name}
-            </span>
-            <span className="block text-xs leading-none text-muted-foreground capitalize">
-              {user.role.toLowerCase()}
-            </span>
-          </span>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-            {user.name.charAt(0).toUpperCase()}
-          </span>
-          <form action={logout}>
-            <button
-              type="submit"
-              aria-label="Sign out"
-              className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
-          </form>
-        </div>
+        <UserButton />
       </div>
     </header>
   );

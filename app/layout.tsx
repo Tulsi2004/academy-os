@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito, Plus_Jakarta_Sans } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -21,11 +22,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${nunito.variable} ${plusJakarta.variable} h-full antialiased`}
-    >
-      <body className="min-h-full">{children}</body>
-    </html>
+    <ClerkProvider afterSignOutUrl="/login">
+      <html
+        lang="en"
+        className={`${nunito.variable} ${plusJakarta.variable} h-full antialiased`}
+      >
+        <body className="min-h-full">{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }

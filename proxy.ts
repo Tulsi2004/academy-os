@@ -1,29 +1,13 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { SESSION_COOKIE } from "@/lib/auth/constants";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-const PUBLIC_PATHS = ["/login", "/setup"];
-
-function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-}
-
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const hasSession = request.cookies.has(SESSION_COOKIE);
-  const isPublic = isPublicPath(pathname);
-
-  if (!hasSession && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (hasSession && isPublic) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  return NextResponse.next();
-}
+// Route-level protection lives in each layout/page (see app/(main)/layout.tsx)
+// rather than here — Clerk's path-based `auth.protect()` matching is deprecated
+// in favor of resource-based checks that can't drift out of sync with routing.
+export default clerkMiddleware();
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.(?:png|jpg|jpeg|svg|ico)$).*)"],
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
 };
