@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDownIcon, CloseIcon, LogoMarkIcon } from "@/components/layout/icons";
+import { ChevronDownIcon, CloseIcon } from "@/components/layout/icons";
 import { matchNavLink, navLinks } from "@/components/layout/nav-links";
 
 type SidebarProps = {
@@ -58,12 +59,15 @@ function SidebarContent({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-border px-4">
-        <LogoMarkIcon className="h-8 w-8 shrink-0 text-primary" />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">Academy OS</p>
-          <p className="truncate text-xs text-muted-foreground">Your Academy</p>
-        </div>
+      <div className="flex h-16 shrink-0 items-center border-b border-border px-4">
+        <Image
+          src="/logo-t-ulsi.png"
+          alt="Tulsi"
+          width={876}
+          height={160}
+          priority
+          className="h-8 w-auto shrink-0 object-contain"
+        />
       </div>
 
       <button
