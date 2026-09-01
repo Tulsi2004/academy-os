@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandLockup } from "@/components/layout/brand";
 import { ChevronDownIcon, CloseIcon } from "@/components/layout/icons";
 import { matchNavLink, navLinks } from "@/components/layout/nav-links";
 
@@ -60,14 +60,7 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 shrink-0 items-center border-b border-border px-4">
-        <Image
-          src="/logo-t-ulsi.png"
-          alt="Tulsi"
-          width={876}
-          height={160}
-          priority
-          className="h-8 w-auto shrink-0 object-contain"
-        />
+        <BrandLockup />
       </div>
 
       <button
