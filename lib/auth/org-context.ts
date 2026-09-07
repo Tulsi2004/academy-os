@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import type { UserRole } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
@@ -84,3 +85,22 @@ export const getOrgContext = cache(async (): Promise<OrgContext> => {
     email: user.email,
   };
 });
+
+/*
+  What every page and layout should call. A layout and the page inside it render
+  in parallel, so a page calling getOrgContext() directly throws
+  UNAUTHENTICATED on its own while the layout races to redirect — the redirect
+  usually won, but the throw was logged as a server error on every anonymous
+  request and the outcome depended on which finished first.
+
+  Server actions keep using getOrgContext(): for them an unauthenticated call
+  really is an error, and there is no page to redirect.
+*/
+export async function requireOrgContext(): Promise<OrgContext> {
+  try {
+    return await getOrgContext();
+  } catch (error) {
+    if (!(error instanceof OrgContextError)) throw error;
+    redirect(error.reason === "UNAUTHENTICATED" ? "/login" : "/no-access");
+  }
+}

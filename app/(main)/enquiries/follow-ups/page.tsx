@@ -1,4 +1,4 @@
-import { getOrgContext } from "@/lib/auth/org-context";
+import { requireOrgContext } from "@/lib/auth/org-context";
 import { dueFollowUpWhere } from "@/lib/enquiries-query";
 import { formatFollowUp, type FollowUpTone } from "@/lib/enquiries";
 import { prisma } from "@/lib/prisma";
@@ -15,7 +15,7 @@ const GROUPS: { tone: FollowUpTone; label: string }[] = [
 ];
 
 export default async function FollowUpsPage() {
-  const { organizationId } = await getOrgContext();
+  const { organizationId } = await requireOrgContext();
 
   const enquiries = await prisma.enquiry.findMany({
     where: { AND: [{ organizationId }, dueFollowUpWhere()] },

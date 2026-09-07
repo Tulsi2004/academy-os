@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { EnquiryStatus } from "@/generated/prisma/enums";
-import { getOrgContext } from "@/lib/auth/org-context";
+import { requireOrgContext } from "@/lib/auth/org-context";
 import { ENQUIRY_STATUS_LABELS, enquiriesHref } from "@/lib/enquiries";
 import { listEnquiries } from "@/lib/enquiries-query";
 import { EnquiriesHeader } from "@/components/enquiries/enquiries-header";
@@ -21,7 +21,7 @@ export default async function EnquiriesPage({
     : undefined;
   const requestedPage = Number.parseInt(page ?? "1", 10);
 
-  const { organizationId } = await getOrgContext();
+  const { organizationId } = await requireOrgContext();
   const result = await listEnquiries({
     organizationId,
     q,

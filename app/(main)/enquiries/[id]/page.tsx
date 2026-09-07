@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getOrgContext } from "@/lib/auth/org-context";
+import { requireOrgContext } from "@/lib/auth/org-context";
 import { EXPERIENCE_LABELS, formatDateTime } from "@/lib/enquiries";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/enquiries/status-badge";
@@ -16,7 +16,7 @@ export default async function EnquiryDetailPage({
 
   // Always scoped. `findUnique({ where: { id } })` here would be a cross-tenant
   // read waiting to happen.
-  const { organizationId } = await getOrgContext();
+  const { organizationId } = await requireOrgContext();
   const enquiry = await prisma.enquiry.findFirst({
     where: { id, organizationId },
     include: {

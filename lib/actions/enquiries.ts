@@ -160,17 +160,29 @@ export async function updateEnquiry(
 
   const { organizationId, userId } = await getOrgContext();
 
-  const { count } = await prisma.enquiry.updateMany({
+  const existing = await prisma.enquiry.findFirst({
     where: { id, organizationId },
+    select: { id: true, convertedStudentId: true },
+  });
+  if (!existing) {
+    return { error: "Enquiry not found." };
+  }
+
+  /*
+    A converted enquiry keeps its ADMITTED status. Moving it back to, say, NEW
+    would leave it pointing at a Student that the list then claims was never
+    admitted. The form disables the control; this is the backstop, since a
+    server action is a public endpoint.
+  */
+  const status = existing.convertedStudentId ? "ADMITTED" : parsed.data.status;
+
+  await prisma.enquiry.update({
+    where: { id: existing.id },
     data: {
-      status: parsed.data.status,
+      status,
       followUpDate: parsed.data.followUpDate ?? null,
     },
   });
-
-  if (count === 0) {
-    return { error: "Enquiry not found." };
-  }
 
   // Appended only after the enquiry is confirmed to be in this organization —
   // updateMany above is the tenant check.

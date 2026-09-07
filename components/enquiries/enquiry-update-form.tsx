@@ -28,6 +28,9 @@ function toDateInputValue(date: Date | null) {
 }
 
 export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
+  // Status is fixed once the enquiry has become a student — see updateEnquiry.
+  const converted = Boolean(enquiry.convertedStudentId);
+
   const updateWithId = updateEnquiry.bind(null, enquiry.id);
   const [state, formAction, pending] = useActionState(updateWithId, initialState);
 
@@ -64,7 +67,7 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
             <Label htmlFor="status" className="mb-1.5">
               Status
             </Label>
-            <Select name="status" defaultValue={enquiry.status}>
+            <Select name="status" defaultValue={enquiry.status} disabled={converted}>
               <SelectTrigger id="status" className="w-full">
                 <SelectValue>
                   {(value: string | null) =>
@@ -80,6 +83,11 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
                 ))}
               </SelectContent>
             </Select>
+            {converted && (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Fixed — this enquiry has been converted to a student.
+              </p>
+            )}
           </div>
 
           <div>

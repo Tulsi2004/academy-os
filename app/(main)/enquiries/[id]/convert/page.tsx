@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getOrgContext } from "@/lib/auth/org-context";
+import { requireOrgContext } from "@/lib/auth/org-context";
 import { prisma } from "@/lib/prisma";
 import { ConvertForm, type BatchOption } from "@/components/enquiries/convert-form";
 
@@ -10,7 +10,7 @@ export default async function ConvertEnquiryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { organizationId } = await getOrgContext();
+  const { organizationId } = await requireOrgContext();
 
   const enquiry = await prisma.enquiry.findFirst({
     where: { id, organizationId },

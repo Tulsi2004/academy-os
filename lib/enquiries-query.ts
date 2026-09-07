@@ -1,6 +1,7 @@
 import type { EnquiryWhereInput } from "@/generated/prisma/models";
 import { EnquiryStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { addAcademyDays } from "@/lib/day";
 
 export const ENQUIRIES_PAGE_SIZE = 25;
 
@@ -8,10 +9,9 @@ export const ENQUIRIES_PAGE_SIZE = 25;
 // follow-up queue no matter what date is on it.
 const CLOSED: EnquiryStatus[] = ["ADMITTED", "LOST"];
 
-/** Exclusive upper bound for "due today or earlier". */
+/** Exclusive upper bound for "due today or earlier", in the academy's timezone. */
 function endOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return addAcademyDays(1);
 }
 
 /*
@@ -40,15 +40,17 @@ function notDueWhere(): EnquiryWhereInput {
   normaliser can't be reused directly — it expects a complete number. Instead we
   try each plausible reading of what was typed.
 */
+// A shorter fragment than this matches too many numbers to be a useful search.
+const MIN_PHONE_DIGITS = 3;
+
 function phoneCandidates(term: string): string[] {
   /*
     Only treat the term as a phone search when the whole thing is a number.
     Pulling the digits out of any query is wrong: "Test2" would search phones
-    for "2" and match nearly every row. Three digits is the floor — shorter
-    fragments match too much to be useful.
+    for "2" and match nearly every row.
   */
   const compact = term.replace(/[\s()+.-]/g, "");
-  if (!/^\d+$/.test(compact) || compact.length < 3) return [];
+  if (!/^\d+$/.test(compact) || compact.length < MIN_PHONE_DIGITS) return [];
 
   const digits = compact;
   const candidates = new Set<string>([digits]);
@@ -65,7 +67,10 @@ function phoneCandidates(term: string): string[] {
     if (national) candidates.add(national);
   }
 
-  return [...candidates];
+  // The derived readings get the same floor as the typed one. Stripping the
+  // zeros off a search for "0000004" leaves "4", which would match almost every
+  // number in the database.
+  return [...candidates].filter((candidate) => candidate.length >= MIN_PHONE_DIGITS);
 }
 
 function searchWhere(q: string | undefined): EnquiryWhereInput | null {
@@ -139,7 +144,7 @@ export async function listEnquiries({
     rows.push(
       ...(await prisma.enquiry.findMany({
         where: due,
-        orderBy: [{ followUpDate: "asc" }, { createdAt: "desc" }],
+        orderBy: [{ followUpDate: "asc" }, { createdAt: "desc" }, { id: "asc" }],
         skip: offset,
         take: Math.min(ENQUIRIES_PAGE_SIZE, dueCount - offset),
         select: ROW_SELECT,
@@ -151,7 +156,7 @@ export async function listEnquiries({
     rows.push(
       ...(await prisma.enquiry.findMany({
         where: rest,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
         skip: Math.max(0, offset - dueCount),
         take: ENQUIRIES_PAGE_SIZE - rows.length,
         select: ROW_SELECT,

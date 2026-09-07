@@ -1,4 +1,5 @@
 import { EnquiryStatus, ExperienceLevel } from "@/generated/prisma/enums";
+import { ACADEMY_TIME_ZONE, academyDaysFromToday, startOfAcademyDay } from "@/lib/day";
 
 export const ENQUIRY_STATUS_LABELS: Record<EnquiryStatus, string> = {
   NEW: "New",
@@ -34,10 +35,6 @@ export const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
 
 export const EXPERIENCE_OPTIONS = Object.values(ExperienceLevel);
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
 export type FollowUpTone = "none" | "overdue" | "today" | "tomorrow" | "upcoming";
 
 export function formatFollowUp(followUpDate: Date | null): {
@@ -46,20 +43,14 @@ export function formatFollowUp(followUpDate: Date | null): {
 } {
   if (!followUpDate) return { label: "—", tone: "none" };
 
-  const today = startOfDay(new Date());
-  const target = startOfDay(followUpDate);
-  const diffDays = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  const diffDays = academyDaysFromToday(followUpDate);
 
   if (diffDays < 0) return { label: "Overdue", tone: "overdue" };
   if (diffDays === 0) return { label: "Today", tone: "today" };
   if (diffDays === 1) return { label: "Tomorrow", tone: "tomorrow" };
 
   return {
-    label: followUpDate.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      ...(target.getFullYear() !== today.getFullYear() ? { year: "numeric" } : {}),
-    }),
+    label: formatDate(followUpDate),
     tone: "upcoming",
   };
 }
@@ -74,6 +65,7 @@ export const FOLLOW_UP_TONE_STYLES: Record<FollowUpTone, string> = {
 
 export function formatDateTime(date: Date) {
   return date.toLocaleString("en-IN", {
+    timeZone: ACADEMY_TIME_ZONE,
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -83,11 +75,13 @@ export function formatDateTime(date: Date) {
 }
 
 export function formatDate(date: Date) {
-  const today = startOfDay(new Date());
+  const sameYear =
+    startOfAcademyDay(date).getUTCFullYear() === startOfAcademyDay().getUTCFullYear();
   return date.toLocaleDateString("en-IN", {
+    timeZone: ACADEMY_TIME_ZONE,
     day: "numeric",
     month: "short",
-    ...(date.getFullYear() !== today.getFullYear() ? { year: "numeric" } : {}),
+    ...(sameYear ? {} : { year: "numeric" }),
   });
 }
 

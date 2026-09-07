@@ -69,10 +69,16 @@ export const convertEnquirySchema = z.object({
     .string()
     .trim()
     .optional()
-    .transform((value) => (value ? Number(value) : undefined))
+    // Blank and "0" both mean "no fee taken" — the field's own placeholder is
+    // 0, so rejecting it would be a trap. Neither creates a Payment row.
+    .transform((value) => {
+      if (!value) return undefined;
+      const amount = Number(value);
+      return Number.isFinite(amount) && amount === 0 ? undefined : amount;
+    })
     .refine(
       (value) => value === undefined || (Number.isFinite(value) && value > 0 && value < 10_000_000),
-      "Enter a fee amount greater than zero",
+      "Enter a fee amount of zero or more",
     ),
 });
 
