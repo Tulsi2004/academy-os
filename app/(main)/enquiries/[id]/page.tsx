@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentOrganization } from "@/lib/current-org";
+import { getOrgContext } from "@/lib/auth/org-context";
 import { EXPERIENCE_LABELS, formatDateTime } from "@/lib/enquiries";
 import { StatusBadge } from "@/components/enquiries/status-badge";
 import { EnquiryUpdateForm } from "@/components/enquiries/enquiry-update-form";
@@ -13,9 +13,9 @@ export default async function EnquiryDetailPage({
 }) {
   const { id } = await params;
 
-  const organization = await getCurrentOrganization();
+  const { organizationId } = await getOrgContext();
   const enquiry = await prisma.enquiry.findFirst({
-    where: { id, organizationId: organization.id },
+    where: { id, organizationId },
   });
   if (!enquiry) notFound();
 

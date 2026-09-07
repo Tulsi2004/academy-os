@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ExperienceLevel, EnquiryStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
-import { getCurrentOrganization } from "@/lib/current-org";
+import { getOrgContext } from "@/lib/auth/org-context";
 
 export type EnquiryActionState = {
   error?: string;
@@ -64,11 +64,11 @@ export async function createEnquiry(
     return { error: parsed.error.issues[0]?.message ?? "Please check the form and try again." };
   }
 
-  const organization = await getCurrentOrganization();
+  const { organizationId } = await getOrgContext();
 
   const enquiry = await prisma.enquiry.create({
     data: {
-      organizationId: organization.id,
+      organizationId,
       studentName: parsed.data.studentName,
       parentName: parsed.data.parentName ?? null,
       phone: parsed.data.phone,
@@ -106,10 +106,10 @@ export async function updateEnquiry(
     return { error: parsed.error.issues[0]?.message ?? "Please check the form and try again." };
   }
 
-  const organization = await getCurrentOrganization();
+  const { organizationId } = await getOrgContext();
 
   const { count } = await prisma.enquiry.updateMany({
-    where: { id, organizationId: organization.id },
+    where: { id, organizationId },
     data: {
       status: parsed.data.status,
       followUpDate: parsed.data.followUpDate ?? null,

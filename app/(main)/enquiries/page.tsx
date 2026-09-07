@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { EnquiryStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getCurrentOrganization } from "@/lib/current-org";
+import { getOrgContext } from "@/lib/auth/org-context";
 import { ENQUIRY_STATUS_LABELS } from "@/lib/enquiries";
 import { EnquiriesHeader } from "@/components/enquiries/enquiries-header";
 import { EnquiriesTable } from "@/components/enquiries/enquiries-table";
@@ -18,11 +18,11 @@ export default async function EnquiriesPage({
     ? (status as EnquiryStatus)
     : undefined;
 
-  const organization = await getCurrentOrganization();
+  const { organizationId } = await getOrgContext();
 
   const enquiries = await prisma.enquiry.findMany({
     where: {
-      organizationId: organization.id,
+      organizationId,
       ...(activeStatus ? { status: activeStatus } : {}),
     },
     orderBy: { createdAt: "desc" },

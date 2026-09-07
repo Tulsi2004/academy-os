@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getCurrentOrganization } from "@/lib/current-org";
+import { getOrgContext } from "@/lib/auth/org-context";
 import { formatFollowUp, type FollowUpTone } from "@/lib/enquiries";
 import { EnquiriesHeader } from "@/components/enquiries/enquiries-header";
 import { EnquiriesTable, type EnquiryRow } from "@/components/enquiries/enquiries-table";
@@ -14,11 +14,11 @@ const GROUPS: { tone: FollowUpTone; label: string }[] = [
 ];
 
 export default async function FollowUpsPage() {
-  const organization = await getCurrentOrganization();
+  const { organizationId } = await getOrgContext();
 
   const enquiries = await prisma.enquiry.findMany({
     where: {
-      organizationId: organization.id,
+      organizationId,
       followUpDate: { not: null },
     },
     orderBy: { followUpDate: "asc" },
