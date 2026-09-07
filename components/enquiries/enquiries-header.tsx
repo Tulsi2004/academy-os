@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { EnquiryCaptureSheet } from "@/components/enquiries/enquiry-capture-sheet";
 
 const tabs = [
   { href: "/enquiries", label: "All enquiries" },
@@ -39,9 +39,7 @@ export function EnquiriesHeader() {
             );
           })}
         </nav>
-        <Button size="lg" nativeButton={false} render={<Link href="/enquiries/new" />}>
-          New Enquiry
-        </Button>
+        <EnquiryCaptureSheet />
       </div>
     </div>
   );

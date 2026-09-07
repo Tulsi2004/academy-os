@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "check:tenancy": "tsx scripts/check-tenancy.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -96,16 +96,18 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
         </div>
 
         <div>
-          <Label htmlFor="notes" className="mb-1.5">
-            Notes
+          <Label htmlFor="note" className="mb-1.5">
+            Add a note
           </Label>
           <Textarea
-            id="notes"
-            name="notes"
-            rows={5}
-            defaultValue={enquiry.notes ?? ""}
-            placeholder="Add context for the team — what was discussed, next steps, etc."
+            id="note"
+            name="note"
+            rows={4}
+            placeholder="What was discussed, and what happens next."
           />
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Notes are appended to the timeline. Nothing already written is replaced.
+          </p>
         </div>
       </div>
 

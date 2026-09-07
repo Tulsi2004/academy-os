@@ -81,3 +81,35 @@ export function formatDateTime(date: Date) {
     minute: "2-digit",
   });
 }
+
+export function formatDate(date: Date) {
+  const today = startOfDay(new Date());
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    ...(date.getFullYear() !== today.getFullYear() ? { year: "numeric" } : {}),
+  });
+}
+
+/*
+  Search, status filter and page all live in the URL so the view survives a
+  refresh, a back button and a shared link. Every control rebuilds the whole
+  query string through here rather than mutating one key, which is what keeps
+  "filter by status" from silently dropping an active search.
+*/
+export function enquiriesHref({
+  q,
+  status,
+  page,
+}: {
+  q?: string;
+  status?: string;
+  page?: number;
+}) {
+  const params = new URLSearchParams();
+  if (q?.trim()) params.set("q", q.trim());
+  if (status) params.set("status", status);
+  if (page && page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `/enquiries?${query}` : "/enquiries";
+}

@@ -1,26 +1,24 @@
-import { prisma } from "@/lib/prisma";
 import { getOrgContext } from "@/lib/auth/org-context";
+import { dueFollowUpWhere } from "@/lib/enquiries-query";
 import { formatFollowUp, type FollowUpTone } from "@/lib/enquiries";
+import { prisma } from "@/lib/prisma";
 import { EnquiriesHeader } from "@/components/enquiries/enquiries-header";
 import { EnquiriesTable, type EnquiryRow } from "@/components/enquiries/enquiries-table";
 
 export const dynamic = "force-dynamic";
 
+// Only what is actually due — overdue and today. A follow-up set for next week
+// is not this morning's work, and an admitted or lost enquiry is never work.
 const GROUPS: { tone: FollowUpTone; label: string }[] = [
   { tone: "overdue", label: "Overdue" },
   { tone: "today", label: "Today" },
-  { tone: "tomorrow", label: "Tomorrow" },
-  { tone: "upcoming", label: "Upcoming" },
 ];
 
 export default async function FollowUpsPage() {
   const { organizationId } = await getOrgContext();
 
   const enquiries = await prisma.enquiry.findMany({
-    where: {
-      organizationId,
-      followUpDate: { not: null },
-    },
+    where: { AND: [{ organizationId }, dueFollowUpWhere()] },
     orderBy: { followUpDate: "asc" },
     select: {
       id: true,
@@ -29,12 +27,13 @@ export default async function FollowUpsPage() {
       interestedIn: true,
       status: true,
       followUpDate: true,
+      createdAt: true,
     },
   });
 
   const grouped = new Map<FollowUpTone, EnquiryRow[]>();
   for (const enquiry of enquiries) {
-    const tone = formatFollowUp(enquiry.followUpDate).tone;
+    const { tone } = formatFollowUp(enquiry.followUpDate);
     grouped.set(tone, [...(grouped.get(tone) ?? []), enquiry]);
   }
 
@@ -43,7 +42,11 @@ export default async function FollowUpsPage() {
       <EnquiriesHeader />
 
       {enquiries.length === 0 ? (
-        <EnquiriesTable enquiries={[]} />
+        <div className="flex min-h-60 items-center justify-center rounded-xl border border-dashed border-border bg-card">
+          <p className="text-sm text-muted-foreground">
+            Nothing due today. Follow-ups appear here on the day they&apos;re set.
+          </p>
+        </div>
       ) : (
         <div className="space-y-8">
           {GROUPS.filter((group) => (grouped.get(group.tone)?.length ?? 0) > 0).map((group) => (

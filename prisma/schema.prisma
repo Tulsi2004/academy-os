@@ -60,59 +60,63 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users       User[]
-  courses     Course[]
-  batches     Batch[]
-  teachers    Teacher[]
-  students    Student[]
-  parents     Parent[]
-  enquiries   Enquiry[]
-  payments    Payment[]
-  enrollments Enrollment[]
+  users        User[]
+  courses      Course[]
+  batches      Batch[]
+  teachers     Teacher[]
+  students     Student[]
+  parents      Parent[]
+  enquiries    Enquiry[]
+  payments     Payment[]
+  enrollments  Enrollment[]
+  enquiryNotes EnquiryNote[]
 }
 
 model User {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   name           String
   email          String
   role           UserRole
-  clerkUserId    String?      @unique
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  clerkUserId    String?  @unique
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  enquiryNotes EnquiryNote[]
 
+  @@unique([organizationId, id])
   @@unique([organizationId, email])
   @@index([organizationId])
 }
 
 model Course {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   name           String
   description    String?
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   batches      Batch[]
+  enquiries    Enquiry[]
 
   @@unique([organizationId, id])
   @@index([organizationId])
 }
 
 model Teacher {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   name           String
   phone          String?
   email          String?
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   batches      Batch[]
@@ -122,19 +126,19 @@ model Teacher {
 }
 
 model Batch {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   courseId       String
   teacherId      String?
   name           String
   capacity       Int?
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  course       Course        @relation(fields: [organizationId, courseId], references: [organizationId, id])
-  teacher      Teacher?      @relation(fields: [organizationId, teacherId], references: [organizationId, id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  course       Course       @relation(fields: [organizationId, courseId], references: [organizationId, id])
+  teacher      Teacher?     @relation(fields: [organizationId, teacherId], references: [organizationId, id])
   enrollments  Enrollment[]
 
   @@unique([organizationId, id])
@@ -144,13 +148,13 @@ model Batch {
 }
 
 model Parent {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   name           String
   phone          String
   email          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   students     Student[]
@@ -162,7 +166,7 @@ model Parent {
 }
 
 model Student {
-  id             String       @id @default(cuid())
+  id             String           @id @default(cuid())
   organizationId String
   parentId       String?
   firstName      String
@@ -170,15 +174,17 @@ model Student {
   dateOfBirth    DateTime?
   phone          String?
   email          String?
+  address        String?
   experience     ExperienceLevel?
   photoUrl       String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  parent       Parent?      @relation(fields: [organizationId, parentId], references: [organizationId, id])
-  payments     Payment[]
-  enrollments  Enrollment[]
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent               Parent?      @relation(fields: [organizationId, parentId], references: [organizationId, id])
+  payments             Payment[]
+  enrollments          Enrollment[]
+  convertedFromEnquiry Enquiry?     @relation("EnquiryConversion")
 
   @@unique([organizationId, id])
   @@index([organizationId])
@@ -207,29 +213,39 @@ model Enrollment {
 }
 
 model Enquiry {
-  id             String          @id @default(cuid())
-  organizationId String
-  parentId       String?
-  studentName    String
-  parentName     String?
-  phone          String
-  email          String?
-  interestedIn   String?
-  experience     ExperienceLevel?
-  status         EnquiryStatus   @default(NEW)
-  followUpDate   DateTime?
-  notes          String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                 String           @id @default(cuid())
+  organizationId     String
+  parentId           String?
+  studentName        String
+  parentName         String?
+  phone              String
+  email              String?
+  interestedIn       String?
+  // Free-text `interestedIn` stays: a parent often says "something for my
+  // 7-year-old". `courseId` captures a real course when they name one.
+  courseId           String?
+  // Set when this enquiry becomes an admission. Without it there is no way to
+  // answer "how many enquiries converted this month".
+  convertedStudentId String?
+  experience         ExperienceLevel?
+  status             EnquiryStatus    @default(NEW)
+  followUpDate       DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  parent       Parent?      @relation(fields: [organizationId, parentId], references: [organizationId, id])
-  payments     Payment[]
+  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent           Parent?       @relation(fields: [organizationId, parentId], references: [organizationId, id])
+  course           Course?       @relation(fields: [organizationId, courseId], references: [organizationId, id])
+  convertedStudent Student?      @relation("EnquiryConversion", fields: [organizationId, convertedStudentId], references: [organizationId, id])
+  payments         Payment[]
+  noteEntries      EnquiryNote[]
 
   @@unique([organizationId, id])
+  @@unique([organizationId, convertedStudentId])
   @@index([organizationId])
   @@index([status])
   @@index([phone])
+  @@index([courseId])
 }
 
 model Payment {
@@ -253,4 +269,23 @@ model Payment {
   @@index([studentId])
   @@index([enquiryId])
   @@index([status])
+}
+
+/// Append-only. An enquiry's notes are a history of what was said and when,
+/// not a single field the last person to touch it overwrites.
+model EnquiryNote {
+  id             String   @id @default(cuid())
+  organizationId String
+  enquiryId      String
+  authorId       String?
+  body           String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  enquiry      Enquiry      @relation(fields: [organizationId, enquiryId], references: [organizationId, id], onDelete: Cascade)
+  author       User?        @relation(fields: [organizationId, authorId], references: [organizationId, id])
+
+  @@index([organizationId])
+  @@index([enquiryId])
+  @@index([createdAt])
 }
