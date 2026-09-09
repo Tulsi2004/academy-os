@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GraduationCapIcon, MessageCircleIcon, PhoneIcon } from "lucide-react";
+import { GraduationCapIcon, MessageCircleIcon, PencilIcon, PhoneIcon } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireOrgContext } from "@/lib/auth/org-context";
 import { formatDateTime, telHref, whatsAppHref } from "@/lib/enquiries";
@@ -92,17 +92,28 @@ export default async function EnquiryDetailPage({
               {t.enquiries.detail.lastUpdated}: {formatDateTime(enquiry.updatedAt, intl)}
             </p>
           </div>
-          {!converted && (
+          <div className="flex flex-wrap items-center gap-2">
             <Button
+              variant="outline"
               size="lg"
-              className="shadow-sm"
               nativeButton={false}
-              render={<Link href={`/enquiries/${enquiry.id}/convert`} />}
+              render={<Link href={`/enquiries/${enquiry.id}/edit`} />}
             >
-              <GraduationCapIcon aria-hidden="true" />
-              {t.enquiries.detail.convert}
+              <PencilIcon aria-hidden="true" />
+              {t.common.edit}
             </Button>
-          )}
+            {!converted && (
+              <Button
+                size="lg"
+                className="shadow-sm"
+                nativeButton={false}
+                render={<Link href={`/enquiries/${enquiry.id}/convert`} />}
+              >
+                <GraduationCapIcon aria-hidden="true" />
+                {t.enquiries.detail.convert}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* The two things anyone does from this page before reading anything
@@ -152,7 +163,13 @@ export default async function EnquiryDetailPage({
           )}
           {missing.length > 0 && (
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              {fill(t.enquiries.detail.notRecorded, { fields: missing.join(", ") })}
+              {fill(t.enquiries.detail.notRecorded, { fields: missing.join(", ") })}{" "}
+              <Link
+                href={`/enquiries/${enquiry.id}/edit`}
+                className="font-medium text-primary hover:underline"
+              >
+                {t.common.edit}
+              </Link>
             </p>
           )}
         </div>

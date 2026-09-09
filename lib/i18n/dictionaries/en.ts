@@ -14,6 +14,8 @@
 export const en = {
   common: {
     required: "required",
+    edit: "Edit",
+    cancel: "Cancel",
     save: "Save",
     saving: "Saving…",
     previous: "Previous",
@@ -61,6 +63,12 @@ export const en = {
       followUps: "To call",
     },
     newEnquiry: "New enquiry",
+    editDetails: {
+      title: "Edit {name}",
+      subtitle: "Fill in whatever you have learned since the enquiry came in. Status and call-back date are set on the enquiry itself.",
+      submit: "Save changes",
+      submitting: "Saving…",
+    },
     backToList: "Back to enquiries",
     search: {
       placeholder: "Search by name or phone…",
@@ -159,6 +167,7 @@ export const en = {
       interestedInPlaceholder: "Keyboard, weekend batch",
       course: "Course",
       coursePlaceholder: "Not sure yet",
+      noCourses: "No courses set up yet. Add your courses so an enquiry can name one.",
       note: "Note",
       notePlaceholder: "Walk-in, asked about fees",
       save: "Save",
@@ -251,6 +260,12 @@ export const en = {
   },
 
   students: {
+    edit: {
+      title: "Edit {name}",
+      subtitle: "Change the student's details and the parent on file. Batches and payments are managed separately.",
+      submit: "Save changes",
+      submitting: "Saving…",
+    },
     title: "Students",
     subtitle: "Everyone learning at the academy. Search by student name, parent name or either phone number.",
     newStudent: "Add student",
@@ -326,6 +341,7 @@ export const en = {
     courseGone: "That course no longer exists.",
     batchGone: "That batch no longer exists.",
     enquiryNotFound: "Enquiry not found.",
+    studentNotFound: "Student not found.",
     alreadyConverted: "This enquiry has already become a student.",
     saveFailed: "Could not save the enquiry. Check your connection and try again.",
     convertFailed: "Could not complete the admission. Nothing was saved — try again.",

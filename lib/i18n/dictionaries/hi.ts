@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const hi: Dictionary = {
   common: {
     required: "ज़रूरी",
+    edit: "बदलें",
+    cancel: "रद्द करें",
     save: "सहेजें",
     saving: "सहेजा जा रहा है…",
     previous: "पिछला",
@@ -50,6 +52,12 @@ export const hi: Dictionary = {
       followUps: "फ़ोन करने हैं",
     },
     newEnquiry: "नई पूछताछ",
+    editDetails: {
+      title: "{name} में बदलाव",
+      subtitle: "पूछताछ आने के बाद जो भी पता चला हो, वह भरें। स्थिति और वापस फ़ोन की तारीख़ पूछताछ पर ही तय होती है।",
+      submit: "बदलाव सहेजें",
+      submitting: "सहेजा जा रहा है…",
+    },
     backToList: "पूछताछ सूची पर वापस",
     search: {
       placeholder: "नाम या फ़ोन नंबर से खोजें…",
@@ -142,6 +150,7 @@ export const hi: Dictionary = {
       interestedInPlaceholder: "कीबोर्ड, वीकेंड बैच",
       course: "कोर्स",
       coursePlaceholder: "अभी तय नहीं",
+      noCourses: "अभी कोई कोर्स नहीं बना है। अपने कोर्स जोड़ें ताकि पूछताछ में उन्हें चुना जा सके।",
       note: "टिप्पणी",
       notePlaceholder: "चलकर आए थे, फ़ीस के बारे में पूछा",
       save: "सहेजें",
@@ -233,6 +242,12 @@ export const hi: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "{name} में बदलाव",
+      subtitle: "छात्र का विवरण और दर्ज अभिभावक बदलें। बैच और भुगतान अलग से संभाले जाते हैं।",
+      submit: "बदलाव सहेजें",
+      submitting: "सहेजा जा रहा है…",
+    },
     title: "छात्र",
     subtitle: "अकादमी में सीख रहे सभी लोग। छात्र या अभिभावक के नाम, या किसी भी फ़ोन नंबर से खोजें।",
     newStudent: "छात्र जोड़ें",
@@ -308,6 +323,7 @@ export const hi: Dictionary = {
     courseGone: "वह कोर्स अब मौजूद नहीं है।",
     batchGone: "वह बैच अब मौजूद नहीं है।",
     enquiryNotFound: "पूछताछ नहीं मिली।",
+    studentNotFound: "छात्र नहीं मिला।",
     alreadyConverted: "इस पूछताछ का दाख़िला पहले ही हो चुका है।",
     saveFailed: "पूछताछ सहेजी नहीं जा सकी। अपना कनेक्शन जाँचकर दोबारा कोशिश करें।",
     convertFailed: "दाख़िला पूरा नहीं हो सका। कुछ भी सहेजा नहीं गया — दोबारा कोशिश करें।",

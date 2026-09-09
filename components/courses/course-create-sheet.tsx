@@ -14,7 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { createCourse } from "@/lib/actions/courses";
+import { createCourse, updateCourse } from "@/lib/actions/courses";
 import { createCourseSchema } from "@/lib/validations/course";
 import { blurErrorFor, fieldErrorsOf } from "@/lib/validations/client";
 import { useLanguage } from "@/lib/i18n/language-provider";
@@ -27,17 +27,30 @@ const EMPTY = { name: "", description: "" };
   in one sitting, then almost never again. "Save and add another" is what makes
   that sitting bearable, the same way it does on the enquiry sheet.
 */
+/*
+  Creating and editing a course are the same two fields, so they are the same
+  sheet. `course` decides which: absent means new, present means edit — and edit
+  drops "Save and add another", which would otherwise read as a way to make a
+  copy of the course you are editing.
+*/
 export function CourseCreateSheet({
   label = "New Course",
   className,
+  course,
+  variant,
 }: {
   label?: string;
   className?: string;
+  course?: { id: string; name: string; description: string | null };
+  variant?: "default" | "outline";
 }) {
+  const editing = Boolean(course);
   const router = useRouter();
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState(EMPTY);
+  const [values, setValues] = useState(
+    course ? { name: course.name, description: course.description ?? "" } : EMPTY,
+  );
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<null | "save" | "another">(null);
@@ -52,6 +65,7 @@ export function CourseCreateSheet({
   }
 
   function reset() {
+    if (course) return;
     setValues(EMPTY);
     setError(null);
     setFieldErrors({});
@@ -76,7 +90,9 @@ export function CourseCreateSheet({
     setSaving(addAnother ? "another" : "save");
     setError(null);
     try {
-      const result = await createCourse(values);
+      const result = course
+        ? await updateCourse(course.id, values)
+        : await createCourse(values);
       if (!result.ok) {
         setError(translateMessage(result.error, t));
         setFieldErrors(translateFieldErrors(result.fieldErrors, t));
@@ -85,6 +101,12 @@ export function CourseCreateSheet({
 
       const savedName = values.name.trim();
       reset();
+      // An edit finishes; only creation loops round for the next one.
+      if (course) {
+        setOpen(false);
+        router.refresh();
+        return;
+      }
 
       if (addAnother) {
         // The only signal that anything happened: the fields clear instantly,
@@ -111,11 +133,13 @@ export function CourseCreateSheet({
         if (!next) reset();
       }}
     >
-      <SheetTrigger render={<Button size="lg" className={className} />}>{label}</SheetTrigger>
+      <SheetTrigger render={<Button size="lg" variant={variant} className={className} />}>
+        {label}
+      </SheetTrigger>
 
       <SheetContent initialFocus={nameRef}>
         <SheetHeader>
-          <SheetTitle>New course</SheetTitle>
+          <SheetTitle>{editing ? label : "New course"}</SheetTitle>
           <SheetDescription>
             The subject you teach. Timings, teacher and room belong to a batch, not here.
           </SheetDescription>
@@ -166,6 +190,7 @@ export function CourseCreateSheet({
           )}
 
           <div className="mt-auto flex flex-col-reverse gap-2 pt-2 sm:flex-row">
+            {!editing && (
             <Button
               type="button"
               variant="outline"
@@ -176,6 +201,7 @@ export function CourseCreateSheet({
             >
               {saving === "another" ? "Saving…" : "Save and add another"}
             </Button>
+            )}
             <Button type="submit" size="lg" disabled={saving !== null} className="sm:flex-1">
               {saving === "save" ? "Saving…" : "Save"}
             </Button>

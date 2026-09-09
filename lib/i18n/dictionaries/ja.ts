@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const ja: Dictionary = {
   common: {
     required: "必須",
+    edit: "編集",
+    cancel: "キャンセル",
     save: "保存",
     saving: "保存中…",
     previous: "前へ",
@@ -50,6 +52,12 @@ export const ja: Dictionary = {
       followUps: "要電話",
     },
     newEnquiry: "新規問い合わせ",
+    editDetails: {
+      title: "{name} を編集",
+      subtitle: "問い合わせの後に分かったことを記入してください。状況と折り返し日は問い合わせ側で設定します。",
+      submit: "変更を保存",
+      submitting: "保存中…",
+    },
     backToList: "問い合わせ一覧に戻る",
     search: {
       placeholder: "名前または電話番号で検索…",
@@ -142,6 +150,7 @@ export const ja: Dictionary = {
       interestedInPlaceholder: "キーボード、週末クラス",
       course: "コース",
       coursePlaceholder: "まだ決めていない",
+      noCourses: "コースがまだ登録されていません。問い合わせで選べるようにコースを追加してください。",
       note: "メモ",
       notePlaceholder: "飛び込みで来訪、月謝について質問",
       save: "保存",
@@ -234,6 +243,12 @@ export const ja: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "{name} を編集",
+      subtitle: "生徒の情報と登録済みの保護者を変更します。クラスと支払いは別で管理します。",
+      submit: "変更を保存",
+      submitting: "保存中…",
+    },
     title: "生徒",
     subtitle: "アカデミーで学んでいる全員。生徒名、保護者名、どちらの電話番号でも検索できます。",
     newStudent: "生徒を追加",
@@ -309,6 +324,7 @@ export const ja: Dictionary = {
     courseGone: "そのコースは存在しません。",
     batchGone: "そのクラスは存在しません。",
     enquiryNotFound: "問い合わせが見つかりません。",
+    studentNotFound: "生徒が見つかりません。",
     alreadyConverted: "この問い合わせはすでに生徒になっています。",
     saveFailed: "問い合わせを保存できませんでした。接続を確認して、もう一度お試しください。",
     convertFailed: "入会手続きを完了できませんでした。何も保存されていません — もう一度お試しください。",

@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const ko: Dictionary = {
   common: {
     required: "필수",
+    edit: "편집",
+    cancel: "취소",
     save: "저장",
     saving: "저장 중…",
     previous: "이전",
@@ -50,6 +52,12 @@ export const ko: Dictionary = {
       followUps: "전화할 곳",
     },
     newEnquiry: "새 문의",
+    editDetails: {
+      title: "{name} 편집",
+      subtitle: "문의가 들어온 뒤 알게 된 내용을 채워 주세요. 상태와 다시 전화할 날짜는 문의에서 설정합니다.",
+      submit: "변경 사항 저장",
+      submitting: "저장 중…",
+    },
     backToList: "문의 목록으로",
     search: {
       placeholder: "이름 또는 전화번호로 검색…",
@@ -142,6 +150,7 @@ export const ko: Dictionary = {
       interestedInPlaceholder: "키보드, 주말반",
       course: "과정",
       coursePlaceholder: "아직 미정",
+      noCourses: "아직 등록된 과정이 없습니다. 문의에서 선택할 수 있도록 과정을 추가하세요.",
       note: "메모",
       notePlaceholder: "그냥 들르셨고, 수강료를 물어보심",
       save: "저장",
@@ -233,6 +242,12 @@ export const ko: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "{name} 편집",
+      subtitle: "학생 정보와 등록된 학부모를 변경합니다. 반과 결제는 따로 관리합니다.",
+      submit: "변경 사항 저장",
+      submitting: "저장 중…",
+    },
     title: "학생",
     subtitle: "학원에서 배우는 모든 사람. 학생 이름, 학부모 이름 또는 어느 전화번호로든 검색하세요.",
     newStudent: "학생 추가",
@@ -308,6 +323,7 @@ export const ko: Dictionary = {
     courseGone: "그 과정은 더 이상 없습니다.",
     batchGone: "그 반은 더 이상 없습니다.",
     enquiryNotFound: "문의를 찾을 수 없습니다.",
+    studentNotFound: "학생을 찾을 수 없습니다.",
     alreadyConverted: "이 문의는 이미 학생이 되었습니다.",
     saveFailed: "문의를 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요.",
     convertFailed: "등록을 마치지 못했습니다. 저장된 내용은 없습니다 — 다시 시도해 주세요.",

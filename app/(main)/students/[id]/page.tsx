@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircleIcon, PhoneIcon } from "lucide-react";
+import { MessageCircleIcon, PencilIcon, PhoneIcon } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireOrgContext } from "@/lib/auth/org-context";
 import { formatDate, formatDateTime, telHref, whatsAppHref } from "@/lib/enquiries";
@@ -115,7 +115,18 @@ export default async function StudentDetailPage({
       <BackLink href="/students" label={t.students.detail.back} />
 
       <section className="rounded-xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-2xl font-semibold text-foreground">{studentName(student)}</h2>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <h2 className="text-2xl font-semibold text-foreground">{studentName(student)}</h2>
+          <Button
+            variant="outline"
+            size="lg"
+            nativeButton={false}
+            render={<Link href={`/students/${student.id}/edit`} />}
+          >
+            <PencilIcon aria-hidden="true" />
+            {t.common.edit}
+          </Button>
+        </div>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {fill(t.students.detail.admittedOn, {
             date: formatDateTime(student.createdAt, intl),
@@ -184,7 +195,13 @@ export default async function StudentDetailPage({
           )}
           {missing.length > 0 && (
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              {fill(t.students.detail.notRecorded, { fields: missing.join(", ") })}
+              {fill(t.students.detail.notRecorded, { fields: missing.join(", ") })}{" "}
+              <Link
+                href={`/students/${student.id}/edit`}
+                className="font-medium text-primary hover:underline"
+              >
+                {t.common.edit}
+              </Link>
             </p>
           )}
         </div>

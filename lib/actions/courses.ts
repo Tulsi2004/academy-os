@@ -99,3 +99,66 @@ export async function setCourseActive(
   revalidateCourses();
   return { ok: true };
 }
+
+
+export type UpdateCourseResult =
+  | { ok: true }
+  | { ok: false; error: string; fieldErrors?: Record<string, string> };
+
+/*
+  Renaming a course is the common case — a typo, or "Keyboard" becoming
+  "Keyboard Grade 1". The enquiries and batches pointing at it are untouched,
+  which is the whole reason a course is a row rather than a string typed onto
+  each enquiry.
+*/
+export async function updateCourse(
+  courseId: string,
+  input: unknown,
+): Promise<UpdateCourseResult> {
+  const { organizationId } = await getOrgContext();
+
+  const parsed = createCourseSchema.safeParse(input);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const field = issue.path[0];
+      if (typeof field === "string" && !fieldErrors[field]) fieldErrors[field] = issue.message;
+    }
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? errorKey("checkForm"),
+      fieldErrors,
+    };
+  }
+
+  // The scoped read is the tenancy check — `update` by id alone would not be.
+  const course = await prisma.course.findFirst({
+    where: { id: courseId, organizationId },
+    select: { id: true },
+  });
+  if (!course) return { ok: false, error: errorKey("courseNotFound") };
+
+  // Same uniqueness rule as creation, minus this course itself — otherwise
+  // saving a course without renaming it would collide with its own name.
+  const clash = await prisma.course.findFirst({
+    where: {
+      organizationId,
+      id: { not: course.id },
+      name: { equals: parsed.data.name, mode: "insensitive" },
+    },
+    select: { id: true, active: true },
+  });
+  if (clash) {
+    const message = clash.active ? errorKey("courseExists") : errorKey("courseArchivedExists");
+    return { ok: false, error: message, fieldErrors: { name: message } };
+  }
+
+  await prisma.course.update({
+    where: { id: course.id },
+    data: { name: parsed.data.name, description: parsed.data.description ?? null },
+  });
+
+  revalidatePath("/courses");
+
+  return { ok: true };
+}

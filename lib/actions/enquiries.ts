@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { getOrgContext } from "@/lib/auth/org-context";
 import {
   createEnquirySchema,
+  enquiryDetailsSchema,
   isCompletePhone,
   normalizePhone,
   updateEnquirySchema,
@@ -204,4 +205,79 @@ export async function updateEnquiry(
   revalidatePath(`/enquiries/${id}`);
 
   return { success: true };
+}
+
+
+export type EnquiryDetailsResult =
+  | { ok: true }
+  | { ok: false; error: string; fieldErrors?: Record<string, string> };
+
+/*
+  The other half of an enquiry. `updateEnquiry` moves it along — status, when to
+  call back, what was said. This one corrects what is known about the person:
+  the misheard name, the email they gave on the second call, the course they
+  eventually settled on.
+*/
+export async function updateEnquiryDetails(
+  enquiryId: string,
+  input: unknown,
+): Promise<EnquiryDetailsResult> {
+  const { organizationId } = await getOrgContext();
+
+  const parsed = enquiryDetailsSchema.safeParse(input);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const field = issue.path[0];
+      if (typeof field === "string" && !fieldErrors[field]) fieldErrors[field] = issue.message;
+    }
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? errorKey("checkForm"),
+      fieldErrors,
+    };
+  }
+
+  const { courseId, ...fields } = parsed.data;
+
+  const existing = await prisma.enquiry.findFirst({
+    where: { id: enquiryId, organizationId },
+    select: { id: true },
+  });
+  if (!existing) return { ok: false, error: errorKey("enquiryNotFound") };
+
+  // Caller-supplied, so it has to be proved to belong to this organization —
+  // otherwise a foreign id reaches the composite foreign key as an opaque 500.
+  if (courseId) {
+    const course = await prisma.course.findFirst({
+      where: { id: courseId, organizationId },
+      select: { id: true },
+    });
+    if (!course) {
+      return {
+        ok: false,
+        error: errorKey("courseGone"),
+        fieldErrors: { courseId: errorKey("courseGone") },
+      };
+    }
+  }
+
+  await prisma.enquiry.update({
+    where: { id: existing.id },
+    data: {
+      studentName: fields.studentName,
+      phone: fields.phone,
+      email: fields.email ?? null,
+      parentName: fields.parentName ?? null,
+      interestedIn: fields.interestedIn ?? null,
+      experience: fields.experience ?? null,
+      courseId: courseId ?? null,
+    },
+  });
+
+  revalidatePath("/enquiries");
+  revalidatePath("/enquiries/follow-ups");
+  revalidatePath(`/enquiries/${enquiryId}`);
+
+  return { ok: true };
 }

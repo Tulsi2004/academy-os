@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircleIcon, GraduationCapIcon } from "lucide-react";
 import { studentIntakeSchema } from "@/lib/validations/conversion";
@@ -23,12 +24,34 @@ import {
 
 export type BatchOption = { id: string; label: string };
 
-export type IntakeDefaults = {
+export type IntakeValues = {
   firstName: string;
   lastName: string;
+  dateOfBirth: string;
+  experience: string;
+  address: string;
+  studentPhone: string;
+  studentEmail: string;
   parentName: string;
   parentPhone: string;
-  experience: string;
+  parentEmail: string;
+  batchId: string;
+  registrationFee: string;
+};
+
+const EMPTY: IntakeValues = {
+  firstName: "",
+  lastName: "",
+  dateOfBirth: "",
+  experience: "",
+  address: "",
+  studentPhone: "",
+  studentEmail: "",
+  parentName: "",
+  parentPhone: "",
+  parentEmail: "",
+  batchId: "",
+  registrationFee: "",
 };
 
 export type IntakeResult =
@@ -42,34 +65,39 @@ export type IntakeResult =
   arrives as a prop rather than the form knowing which journey it is on.
 */
 export function StudentIntakeForm({
-  defaults,
+  initial,
+  prefilled = [],
   batches,
   submit: runSubmit,
   submitLabel,
   submittingLabel,
+  showEnrolment = true,
+  cancelHref,
 }: {
-  defaults: IntakeDefaults;
+  /** Whatever is already known — from the enquiry, or from the record being edited. */
+  initial?: Partial<IntakeValues>;
+  /*
+    Which of those came from the enquiry, and so should be tagged rather than
+    read as a question being asked twice. Empty when editing: the values are the
+    record's own, not carried over from anywhere.
+  */
+  prefilled?: (keyof IntakeValues)[];
   batches: BatchOption[];
   submit: (values: Record<string, string>) => Promise<IntakeResult>;
   submitLabel: string;
   submittingLabel: string;
+  /*
+    Off when editing. A batch enrolment and a registration fee describe things
+    that happened once; re-submitting them on every edit would enrol the student
+    a second time and take the fee again.
+  */
+  showEnrolment?: boolean;
+  cancelHref?: string;
 }) {
   const router = useRouter();
   const { t } = useLanguage();
-  const [values, setValues] = useState({
-    firstName: defaults.firstName,
-    lastName: defaults.lastName,
-    dateOfBirth: "",
-    experience: defaults.experience,
-    address: "",
-    studentPhone: "",
-    studentEmail: "",
-    parentName: defaults.parentName,
-    parentPhone: defaults.parentPhone,
-    parentEmail: "",
-    batchId: "",
-    registrationFee: "",
-  });
+  const [values, setValues] = useState<IntakeValues>({ ...EMPTY, ...initial });
+  const isPrefilled = (field: keyof IntakeValues) => prefilled.includes(field);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -101,8 +129,7 @@ export function StudentIntakeForm({
         setFieldErrors(translateFieldErrors(result.fieldErrors, t));
         return;
       }
-      // Land on the record that was just created — the next thing anyone does
-      // is check the student's details.
+      // Land on the record — freshly created, or the one just edited.
       router.push(`/students/${result.studentId}`);
       router.refresh();
     } catch {
@@ -125,7 +152,7 @@ export function StudentIntakeForm({
           label={t.enquiries.convert.firstName}
           error={fieldErrors.firstName}
           required
-          prefilled={Boolean(defaults.firstName)}
+          prefilled={isPrefilled("firstName")}
         >
           <Input
             value={values.firstName}
@@ -137,7 +164,7 @@ export function StudentIntakeForm({
         <FieldWrap
           label={t.enquiries.convert.lastName}
           error={fieldErrors.lastName}
-          prefilled={Boolean(defaults.lastName)}
+          prefilled={isPrefilled("lastName")}
         >
           <Input value={values.lastName} onChange={(e) => set("lastName", e.target.value)}
             onBlur={() => checkField("lastName")} />
@@ -153,7 +180,7 @@ export function StudentIntakeForm({
         <FieldWrap
           label={t.enquiries.convert.experience}
           error={fieldErrors.experience}
-          prefilled={Boolean(defaults.experience)}
+          prefilled={isPrefilled("experience")}
         >
           <Select
             value={values.experience || null}
@@ -211,7 +238,7 @@ export function StudentIntakeForm({
           label={t.enquiries.convert.parentName}
           error={fieldErrors.parentName}
           required
-          prefilled={Boolean(defaults.parentName)}
+          prefilled={isPrefilled("parentName")}
         >
           <Input
             value={values.parentName}
@@ -224,7 +251,7 @@ export function StudentIntakeForm({
           label={t.enquiries.convert.parentPhone}
           error={fieldErrors.parentPhone}
           required
-          prefilled={Boolean(defaults.parentPhone)}
+          prefilled={isPrefilled("parentPhone")}
         >
           <Input
             type="tel"
@@ -246,6 +273,7 @@ export function StudentIntakeForm({
         </FieldWrap>
       </Section>
 
+      {showEnrolment && (
       <Section title={t.enquiries.convert.enrolmentSection}>
         {batches.length > 0 ? (
           <FieldWrap label={t.enquiries.convert.batch} error={fieldErrors.batchId}>
@@ -300,6 +328,7 @@ export function StudentIntakeForm({
           />
         </FieldWrap>
       </Section>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -311,7 +340,17 @@ export function StudentIntakeForm({
       {/* Anchored to the bottom of the page rather than floating under the last
           card, so on a long form it is always the next thing after the fields
           instead of something you scroll past looking for. */}
-      <div className="sticky bottom-0 -mx-1 flex justify-end border-t border-border bg-background/80 px-1 py-3 backdrop-blur">
+      <div className="sticky bottom-0 -mx-1 flex items-center justify-end gap-2 border-t border-border bg-background/80 px-1 py-3 backdrop-blur">
+        {cancelHref && (
+          <Button
+            variant="outline"
+            size="lg"
+            nativeButton={false}
+            render={<Link href={cancelHref} />}
+          >
+            {t.common.cancel}
+          </Button>
+        )}
         <Button type="submit" size="lg" className="shadow-sm" disabled={saving}>
           <GraduationCapIcon aria-hidden="true" />
           {saving ? submittingLabel : submitLabel}

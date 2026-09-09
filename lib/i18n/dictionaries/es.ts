@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const es: Dictionary = {
   common: {
     required: "obligatorio",
+    edit: "Editar",
+    cancel: "Cancelar",
     save: "Guardar",
     saving: "Guardando…",
     previous: "Anterior",
@@ -50,6 +52,12 @@ export const es: Dictionary = {
       followUps: "Por llamar",
     },
     newEnquiry: "Nueva consulta",
+    editDetails: {
+      title: "Editar a {name}",
+      subtitle: "Añade lo que hayas averiguado desde que llegó la consulta. El estado y la fecha de llamada se cambian en la consulta.",
+      submit: "Guardar cambios",
+      submitting: "Guardando…",
+    },
     backToList: "Volver a las consultas",
     search: {
       placeholder: "Buscar por nombre o teléfono…",
@@ -143,6 +151,7 @@ export const es: Dictionary = {
       interestedInPlaceholder: "Teclado, grupo de fin de semana",
       course: "Curso",
       coursePlaceholder: "Aún no lo sabe",
+      noCourses: "Todavía no hay cursos. Añade tus cursos para poder elegir uno en la consulta.",
       note: "Nota",
       notePlaceholder: "Vino sin cita, preguntó por los precios",
       save: "Guardar",
@@ -235,6 +244,12 @@ export const es: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "Editar a {name}",
+      subtitle: "Cambia los datos del alumno y la familia registrada. Los grupos y los pagos se gestionan aparte.",
+      submit: "Guardar cambios",
+      submitting: "Guardando…",
+    },
     title: "Alumnos",
     subtitle: "Todas las personas que estudian en la academia. Busca por nombre del alumno, de la familia o cualquiera de los teléfonos.",
     newStudent: "Añadir alumno",
@@ -310,6 +325,7 @@ export const es: Dictionary = {
     courseGone: "Ese curso ya no existe.",
     batchGone: "Ese grupo ya no existe.",
     enquiryNotFound: "Consulta no encontrada.",
+    studentNotFound: "Alumno no encontrado.",
     alreadyConverted: "Esta consulta ya se convirtió en alumno.",
     saveFailed: "No se pudo guardar la consulta. Comprueba la conexión e inténtalo de nuevo.",
     convertFailed: "No se pudo completar la inscripción. No se guardó nada — inténtalo de nuevo.",

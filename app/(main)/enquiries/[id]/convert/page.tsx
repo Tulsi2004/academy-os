@@ -48,6 +48,14 @@ export default async function ConvertEnquiryPage({
 
   const [firstName, ...restOfName] = enquiry.studentName.trim().split(/\s+/);
 
+  const carriedOver = {
+    firstName: firstName ?? "",
+    lastName: restOfName.join(" "),
+    parentName: enquiry.parentName ?? "",
+    parentPhone: enquiry.phone,
+    experience: enquiry.experience ?? "",
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -70,13 +78,14 @@ export default async function ConvertEnquiryPage({
         submitLabel={t.enquiries.convert.submit}
         submittingLabel={t.enquiries.convert.submitting}
         batches={batches}
-        defaults={{
-          firstName: firstName ?? "",
-          lastName: restOfName.join(" "),
-          parentName: enquiry.parentName ?? "",
-          parentPhone: enquiry.phone,
-          experience: enquiry.experience ?? "",
-        }}
+        initial={carriedOver}
+        // Only the fields that actually arrived with a value get the tag — an
+        // empty box is a genuine blank, not something carried forward.
+        prefilled={
+          Object.entries(carriedOver)
+            .filter(([, value]) => Boolean(value))
+            .map(([field]) => field) as (keyof typeof carriedOver)[]
+        }
       />
     </div>
   );

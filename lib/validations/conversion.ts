@@ -94,5 +94,17 @@ export const studentIntakeSchema = z.object({
 */
 export const convertEnquirySchema = studentIntakeSchema;
 
+/*
+  Editing a student is the intake without the two fields that describe an event
+  rather than a person: a batch enrolment and a registration fee are things that
+  happened once, and re-submitting them on every edit would enrol the student
+  twice and take the fee again.
+*/
+export const studentDetailsSchema = studentIntakeSchema.omit({
+  batchId: true,
+  registrationFee: true,
+});
+
 export type StudentIntakeInput = z.input<typeof studentIntakeSchema>;
+export type StudentDetailsInput = z.input<typeof studentDetailsSchema>;
 export type ConvertEnquiryInput = StudentIntakeInput;

@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const ptBR: Dictionary = {
   common: {
     required: "obrigatório",
+    edit: "Editar",
+    cancel: "Cancelar",
     save: "Salvar",
     saving: "Salvando…",
     previous: "Anterior",
@@ -50,6 +52,12 @@ export const ptBR: Dictionary = {
       followUps: "Para ligar",
     },
     newEnquiry: "Novo contato",
+    editDetails: {
+      title: "Editar {name}",
+      subtitle: "Preencha o que você descobriu depois que o contato chegou. Situação e data de retorno são definidas no próprio contato.",
+      submit: "Salvar alterações",
+      submitting: "Salvando…",
+    },
     backToList: "Voltar aos contatos",
     search: {
       placeholder: "Buscar por nome ou telefone…",
@@ -143,6 +151,7 @@ export const ptBR: Dictionary = {
       interestedInPlaceholder: "Teclado, turma de fim de semana",
       course: "Curso",
       coursePlaceholder: "Ainda não sabe",
+      noCourses: "Nenhum curso cadastrado ainda. Cadastre seus cursos para poder escolher um no contato.",
       note: "Observação",
       notePlaceholder: "Veio sem agendar, perguntou o valor",
       save: "Salvar",
@@ -235,6 +244,12 @@ export const ptBR: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "Editar {name}",
+      subtitle: "Altere os dados do aluno e o responsável cadastrado. Turmas e pagamentos são tratados à parte.",
+      submit: "Salvar alterações",
+      submitting: "Salvando…",
+    },
     title: "Alunos",
     subtitle: "Todo mundo que estuda na academia. Busque por nome do aluno, do responsável ou qualquer telefone.",
     newStudent: "Adicionar aluno",
@@ -310,6 +325,7 @@ export const ptBR: Dictionary = {
     courseGone: "Esse curso não existe mais.",
     batchGone: "Essa turma não existe mais.",
     enquiryNotFound: "Contato não encontrado.",
+    studentNotFound: "Aluno não encontrado.",
     alreadyConverted: "Este contato já virou aluno.",
     saveFailed: "Não foi possível salvar o contato. Verifique sua conexão e tente de novo.",
     convertFailed: "Não foi possível concluir a matrícula. Nada foi salvo — tente de novo.",

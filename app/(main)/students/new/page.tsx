@@ -45,15 +45,9 @@ export default async function NewStudentPage() {
         submitLabel={t.students.new.submit}
         submittingLabel={t.students.new.submitting}
         batches={batches}
+        cancelHref="/students"
         // Nothing to carry over: nobody enquired, so every field starts empty
         // and none of them get the "from the enquiry" tag.
-        defaults={{
-          firstName: "",
-          lastName: "",
-          parentName: "",
-          parentPhone: "",
-          experience: "",
-        }}
       />
     </div>
   );

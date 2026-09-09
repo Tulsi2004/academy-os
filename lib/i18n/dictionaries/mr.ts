@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const mr: Dictionary = {
   common: {
     required: "आवश्यक",
+    edit: "बदला",
+    cancel: "रद्द करा",
     save: "जतन करा",
     saving: "जतन होत आहे…",
     previous: "मागील",
@@ -50,6 +52,12 @@ export const mr: Dictionary = {
       followUps: "फोन करायचे आहेत",
     },
     newEnquiry: "नवीन चौकशी",
+    editDetails: {
+      title: "{name} मध्ये बदल",
+      subtitle: "चौकशी आल्यानंतर जे काही कळले ते भरा. स्थिती आणि परत फोनची तारीख चौकशीवरच ठरते.",
+      submit: "बदल जतन करा",
+      submitting: "जतन होत आहे…",
+    },
     backToList: "चौकशी यादीकडे परत",
     search: {
       placeholder: "नाव किंवा फोन नंबरने शोधा…",
@@ -142,6 +150,7 @@ export const mr: Dictionary = {
       interestedInPlaceholder: "कीबोर्ड, वीकेंड बॅच",
       course: "कोर्स",
       coursePlaceholder: "अजून ठरलेले नाही",
+      noCourses: "अजून कोणताही कोर्स तयार केलेला नाही. तुमचे कोर्स जोडा म्हणजे चौकशीत ते निवडता येतील.",
       note: "टीप",
       notePlaceholder: "चालत आले होते, फीबद्दल विचारले",
       save: "जतन करा",
@@ -233,6 +242,12 @@ export const mr: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "{name} मध्ये बदल",
+      subtitle: "विद्यार्थ्याचा तपशील आणि नोंदलेला पालक बदला. बॅच आणि देयके स्वतंत्रपणे हाताळली जातात.",
+      submit: "बदल जतन करा",
+      submitting: "जतन होत आहे…",
+    },
     title: "विद्यार्थी",
     subtitle: "अकादमीत शिकणारे सर्व. विद्यार्थी किंवा पालकाचे नाव, किंवा कोणत्याही फोन नंबरने शोधा.",
     newStudent: "विद्यार्थी जोडा",
@@ -308,6 +323,7 @@ export const mr: Dictionary = {
     courseGone: "तो कोर्स आता अस्तित्वात नाही.",
     batchGone: "तो बॅच आता अस्तित्वात नाही.",
     enquiryNotFound: "चौकशी सापडली नाही.",
+    studentNotFound: "विद्यार्थी सापडला नाही.",
     alreadyConverted: "या चौकशीचा प्रवेश आधीच झाला आहे.",
     saveFailed: "चौकशी जतन होऊ शकली नाही. तुमचे कनेक्शन तपासून पुन्हा प्रयत्न करा.",
     convertFailed: "प्रवेश पूर्ण होऊ शकला नाही. काहीही जतन झाले नाही — पुन्हा प्रयत्न करा.",

@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const zhCN: Dictionary = {
   common: {
     required: "必填",
+    edit: "编辑",
+    cancel: "取消",
     save: "保存",
     saving: "正在保存…",
     previous: "上一页",
@@ -50,6 +52,12 @@ export const zhCN: Dictionary = {
       followUps: "待回电",
     },
     newEnquiry: "新建咨询",
+    editDetails: {
+      title: "编辑 {name}",
+      subtitle: "把咨询之后了解到的信息补充进来。状态和回电日期在咨询本身设置。",
+      submit: "保存更改",
+      submitting: "正在保存…",
+    },
     backToList: "返回咨询列表",
     search: {
       placeholder: "按姓名或电话搜索…",
@@ -142,6 +150,7 @@ export const zhCN: Dictionary = {
       interestedInPlaceholder: "电子琴，周末班",
       course: "课程",
       coursePlaceholder: "还没想好",
+      noCourses: "还没有设置课程。先添加课程，咨询时才能选择。",
       note: "备注",
       notePlaceholder: "直接上门，问了学费",
       save: "保存",
@@ -232,6 +241,12 @@ export const zhCN: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "编辑 {name}",
+      subtitle: "修改学员资料和登记的家长。班级与缴费另行管理。",
+      submit: "保存更改",
+      submitting: "正在保存…",
+    },
     title: "学员",
     subtitle: "在学院学习的所有人。可按学员姓名、家长姓名或任一电话搜索。",
     newStudent: "添加学员",
@@ -307,6 +322,7 @@ export const zhCN: Dictionary = {
     courseGone: "该课程已不存在。",
     batchGone: "该班级已不存在。",
     enquiryNotFound: "找不到该咨询。",
+    studentNotFound: "找不到该学员。",
     alreadyConverted: "这条咨询已经报名成学员。",
     saveFailed: "咨询没能保存。请检查网络后重试。",
     convertFailed: "报名没能完成，什么都没有保存 — 请重试。",

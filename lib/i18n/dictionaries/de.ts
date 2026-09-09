@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const de: Dictionary = {
   common: {
     required: "Pflichtfeld",
+    edit: "Bearbeiten",
+    cancel: "Abbrechen",
     save: "Speichern",
     saving: "Wird gespeichert…",
     previous: "Zurück",
@@ -50,6 +52,12 @@ export const de: Dictionary = {
       followUps: "Anzurufen",
     },
     newEnquiry: "Neue Anfrage",
+    editDetails: {
+      title: "{name} bearbeiten",
+      subtitle: "Tragen Sie nach, was Sie seit der Anfrage erfahren haben. Status und Rückruftermin werden an der Anfrage selbst gesetzt.",
+      submit: "Änderungen speichern",
+      submitting: "Wird gespeichert…",
+    },
     backToList: "Zurück zu den Anfragen",
     search: {
       placeholder: "Nach Name oder Telefonnummer suchen…",
@@ -143,6 +151,7 @@ export const de: Dictionary = {
       interestedInPlaceholder: "Keyboard, Wochenendgruppe",
       course: "Kurs",
       coursePlaceholder: "Noch unklar",
+      noCourses: "Noch keine Kurse angelegt. Legen Sie Ihre Kurse an, damit eine Anfrage einen nennen kann.",
       note: "Notiz",
       notePlaceholder: "Kam spontan vorbei, fragte nach den Gebühren",
       save: "Speichern",
@@ -236,6 +245,12 @@ export const de: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "{name} bearbeiten",
+      subtitle: "Ändern Sie die Angaben des Schülers und die hinterlegten Eltern. Gruppen und Zahlungen werden getrennt verwaltet.",
+      submit: "Änderungen speichern",
+      submitting: "Wird gespeichert…",
+    },
     title: "Schüler",
     subtitle: "Alle, die an der Akademie lernen. Suche nach Schüler- oder Elternname oder einer der Telefonnummern.",
     newStudent: "Schüler hinzufügen",
@@ -311,6 +326,7 @@ export const de: Dictionary = {
     courseGone: "Diesen Kurs gibt es nicht mehr.",
     batchGone: "Diese Gruppe gibt es nicht mehr.",
     enquiryNotFound: "Anfrage nicht gefunden.",
+    studentNotFound: "Schüler nicht gefunden.",
     alreadyConverted: "Aus dieser Anfrage ist bereits ein Schüler geworden.",
     saveFailed:
       "Die Anfrage konnte nicht gespeichert werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",

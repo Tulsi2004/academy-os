@@ -282,9 +282,14 @@ export function EnquiryCaptureSheet({
           {/* The free-text field above stays the primary one: a parent often
               says "something for my 7-year-old" and forcing that into a course
               would lose it. This records a real course when they name one, so
-              "how many enquiries for Keyboard this month" becomes answerable. */}
-          {courses.length > 0 && (
-            <Field label={t.enquiries.capture.course} error={fieldErrors.courseId}>
+              "how many enquiries for Keyboard this month" becomes answerable.
+
+              Always asked, even with no courses set up. Hiding the question
+              entirely made it look as though the product never wanted to know,
+              which is the opposite of true — it is the field the whole enquiry
+              is eventually reported on. */}
+          <Field label={t.enquiries.capture.course} error={fieldErrors.courseId}>
+            {courses.length > 0 ? (
               <Select
                 value={values.courseId || null}
                 onValueChange={(value) => set("courseId", (value as string) ?? "")}
@@ -305,8 +310,19 @@ export function EnquiryCaptureSheet({
                   ))}
                 </SelectContent>
               </Select>
-            </Field>
-          )}
+            ) : (
+              <p className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+                {t.enquiries.capture.noCourses}{" "}
+                <Link
+                  href="/courses"
+                  onClick={() => setOpen(false)}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {t.nav.courses}
+                </Link>
+              </p>
+            )}
+          </Field>
 
           <Field label={t.enquiries.capture.note} error={fieldErrors.notes}>
             <Textarea

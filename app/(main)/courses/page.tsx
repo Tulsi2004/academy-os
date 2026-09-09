@@ -90,7 +90,23 @@ function CourseRowCells({ course, intl }: { course: CourseRow; intl: string }) {
       <td className="px-4 py-3 text-muted-foreground">{course._count.enquiries}</td>
       <td className="px-4 py-3 text-muted-foreground">{formatDate(course.createdAt, intl)}</td>
       <td className="px-4 py-3">
-        <CourseArchiveButton id={course.id} name={course.name} active={course.active} />
+        <div className="flex items-center justify-end gap-2">
+          {/* Archived courses stay readable but not editable — renaming one
+              nobody can pick would only confuse the enquiries still pointing
+              at it. Restore it first. */}
+          {course.active && (
+            <CourseCreateSheet
+              label="Edit"
+              variant="outline"
+              course={{
+                id: course.id,
+                name: course.name,
+                description: course.description,
+              }}
+            />
+          )}
+          <CourseArchiveButton id={course.id} name={course.name} active={course.active} />
+        </div>
       </td>
     </tr>
   );

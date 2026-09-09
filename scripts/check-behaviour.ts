@@ -485,7 +485,18 @@ async function main() {
       !optionIds.includes(archivedCourse.id),
     );
     const optionNames = options.map((option) => option.name);
-    eq("dropdown options are sorted by name", optionNames, [...optionNames].sort());
+    /*
+      Compared with localeCompare, not JS's default sort. Postgres orders by the
+      database collation, which treats "testtt" as coming before "ZZTEST"; the
+      default sort compares raw code points and puts every capital letter first.
+      The two agree only while every course name happens to start with the same
+      case, so this passed until a real course named in lower case existed.
+    */
+    eq(
+      "dropdown options are sorted by name",
+      optionNames,
+      [...optionNames].sort((a, b) => a.localeCompare(b, "en")),
+    );
 
     /*
       The guard createCourse() relies on to refuse a duplicate. If the database

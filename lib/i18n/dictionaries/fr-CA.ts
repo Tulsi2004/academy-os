@@ -3,6 +3,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 export const frCA: Dictionary = {
   common: {
     required: "obligatoire",
+    edit: "Modifier",
+    cancel: "Annuler",
     save: "Enregistrer",
     saving: "Enregistrement…",
     previous: "Précédent",
@@ -50,6 +52,12 @@ export const frCA: Dictionary = {
       followUps: "À rappeler",
     },
     newEnquiry: "Nouvelle demande",
+    editDetails: {
+      title: "Modifier {name}",
+      subtitle: "Ajoutez ce que vous avez appris depuis la demande. L'état et la date de rappel se règlent sur la demande elle-même.",
+      submit: "Enregistrer les modifications",
+      submitting: "Enregistrement…",
+    },
     backToList: "Retour aux demandes",
     search: {
       placeholder: "Rechercher par nom ou téléphone…",
@@ -143,6 +151,7 @@ export const frCA: Dictionary = {
       interestedInPlaceholder: "Clavier, groupe de fin de semaine",
       course: "Cours",
       coursePlaceholder: "Pas encore décidé",
+      noCourses: "Aucun cours pour l'instant. Ajoutez vos cours pour pouvoir en choisir un dans une demande.",
       note: "Note",
       notePlaceholder: "Passé sans rendez-vous, a demandé les tarifs",
       save: "Enregistrer",
@@ -236,6 +245,12 @@ export const frCA: Dictionary = {
   },
 
   students: {
+    edit: {
+      title: "Modifier {name}",
+      subtitle: "Changez les renseignements de l'élève et le parent au dossier. Les groupes et les paiements se gèrent séparément.",
+      submit: "Enregistrer les modifications",
+      submitting: "Enregistrement…",
+    },
     title: "Élèves",
     subtitle: "Toutes les personnes qui apprennent à l'académie. Cherchez par nom d'élève, de parent ou l'un des numéros.",
     newStudent: "Ajouter un élève",
@@ -311,6 +326,7 @@ export const frCA: Dictionary = {
     courseGone: "Ce cours n'existe plus.",
     batchGone: "Ce groupe n'existe plus.",
     enquiryNotFound: "Demande introuvable.",
+    studentNotFound: "Élève introuvable.",
     alreadyConverted: "Cette demande est déjà devenue un élève.",
     saveFailed:
       "Impossible d'enregistrer la demande. Vérifiez votre connexion et réessayez.",

@@ -62,7 +62,7 @@ export default async function FollowUpsPage() {
                 {headings[tone]}{" "}
                 <span className="text-muted-foreground/70">({grouped.get(tone)?.length})</span>
               </h3>
-              <EnquiriesTable enquiries={grouped.get(tone) ?? []} />
+              <EnquiriesTable enquiries={grouped.get(tone) ?? []} courses={courses} />
             </div>
           ))}
         </div>

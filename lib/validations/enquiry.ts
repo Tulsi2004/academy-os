@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { EnquiryStatus } from "@/generated/prisma/enums";
+import { EnquiryStatus, ExperienceLevel } from "@/generated/prisma/enums";
 import { errorKey, type ErrorKey } from "@/lib/i18n/messages";
 
 /*
@@ -123,3 +123,41 @@ export const updateEnquirySchema = z.object({
   // a pasted novel.
   note: optionalText(1000),
 });
+
+
+export const optionalEmail = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => (value ? value : undefined))
+  .pipe(z.string().email(errorKey("emailInvalid")).optional());
+
+/*
+  Everything about an enquiry that is a fact about the person rather than a
+  record of what we did about them. Status, call-back date and notes are edited
+  on the enquiry page itself and are deliberately absent here — mixing "what we
+  know" with "where it stands" is how a screen ends up doing neither well.
+
+  The phone stays editable but stays required: it is the key every duplicate
+  check and future lookup runs on.
+*/
+export const enquiryDetailsSchema = z.object({
+  studentName: z
+    .string()
+    .trim()
+    .min(1, errorKey("studentNameRequired"))
+    .max(100, errorKey("tooLong")),
+  phone: phoneSchema,
+  email: optionalEmail,
+  parentName: optionalText(100),
+  interestedIn: optionalText(100),
+  courseId: optionalText(64),
+  experience: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value ? value : undefined))
+    .pipe(z.enum(ExperienceLevel).optional()),
+});
+
+export type EnquiryDetailsInput = z.input<typeof enquiryDetailsSchema>;
