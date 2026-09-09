@@ -147,6 +147,8 @@ export const de: Dictionary = {
       notePlaceholder: "Kam spontan vorbei, fragte nach den Gebühren",
       save: "Speichern",
       saveAndAnother: "Speichern und weitere eintragen",
+      saveAndAdmit: "Speichern und anmelden",
+      admitHint: "Steht die Anmeldung schon fest? Das speichert die Anfrage und öffnet das Anmeldeformular.",
       saved: "{name} gespeichert. Nächste eintragen.",
       duplicateEnquiry: "{name} hat {when} angefragt",
       duplicateEnquiryWithStatus: "{name} hat {when} angefragt — {status}",

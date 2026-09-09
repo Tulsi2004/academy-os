@@ -146,6 +146,8 @@ export const zhCN: Dictionary = {
       notePlaceholder: "直接上门，问了学费",
       save: "保存",
       saveAndAnother: "保存并继续添加",
+      saveAndAdmit: "保存并办理报名",
+      admitHint: "已经确定要报名了吗？这会保存咨询并直接打开报名表单。",
       saved: "已保存 {name}。继续添加下一条。",
       duplicateEnquiry: "{name} 在{when}咨询过",
       duplicateEnquiryWithStatus: "{name} 在{when}咨询过 — {status}",

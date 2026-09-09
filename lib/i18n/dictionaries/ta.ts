@@ -146,6 +146,8 @@ export const ta: Dictionary = {
       notePlaceholder: "நேரில் வந்தார், கட்டணம் பற்றிக் கேட்டார்",
       save: "சேமி",
       saveAndAnother: "சேமித்து இன்னொன்று சேர்",
+      saveAndAdmit: "சேமித்து மாணவராகச் சேர்க்கவும்",
+      admitHint: "அவர்கள் சேர்வது உறுதியா? இது விசாரணையைச் சேமித்து சேர்க்கை படிவத்தைத் திறக்கும்.",
       saved: "{name} சேமிக்கப்பட்டது. அடுத்ததைச் சேர்க்கவும்.",
       duplicateEnquiry: "{name} {when} விசாரித்தார்",
       duplicateEnquiryWithStatus: "{name} {when} விசாரித்தார் — {status}",

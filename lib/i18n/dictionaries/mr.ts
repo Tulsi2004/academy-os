@@ -146,6 +146,8 @@ export const mr: Dictionary = {
       notePlaceholder: "चालत आले होते, फीबद्दल विचारले",
       save: "जतन करा",
       saveAndAnother: "जतन करा आणि आणखी एक नोंदवा",
+      saveAndAdmit: "जतन करा आणि प्रवेश द्या",
+      admitHint: "ते येणार हे नक्की आहे का? यामुळे चौकशी जतन होऊन प्रवेश फॉर्म उघडेल.",
       saved: "{name} जतन झाले. पुढची नोंदवा.",
       duplicateEnquiry: "{name} यांनी {when} चौकशी केली होती",
       duplicateEnquiryWithStatus: "{name} यांनी {when} चौकशी केली होती — {status}",

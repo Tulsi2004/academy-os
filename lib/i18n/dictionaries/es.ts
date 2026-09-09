@@ -147,6 +147,8 @@ export const es: Dictionary = {
       notePlaceholder: "Vino sin cita, preguntó por los precios",
       save: "Guardar",
       saveAndAnother: "Guardar y añadir otra",
+      saveAndAdmit: "Guardar e inscribir",
+      admitHint: "¿Ya sabes que se inscribe? Esto guarda la consulta y abre el formulario de inscripción.",
       saved: "{name} guardado. Añade la siguiente.",
       duplicateEnquiry: "{name} consultó {when}",
       duplicateEnquiryWithStatus: "{name} consultó {when} — {status}",

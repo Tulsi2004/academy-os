@@ -147,6 +147,8 @@ export const frCA: Dictionary = {
       notePlaceholder: "Passé sans rendez-vous, a demandé les tarifs",
       save: "Enregistrer",
       saveAndAnother: "Enregistrer et en ajouter une autre",
+      saveAndAdmit: "Enregistrer et inscrire",
+      admitHint: "L'inscription est déjà certaine ? Cela enregistre la demande et ouvre le formulaire d'inscription.",
       saved: "{name} enregistré. Ajoutez la suivante.",
       duplicateEnquiry: "{name} s'est informé {when}",
       duplicateEnquiryWithStatus: "{name} s'est informé {when} — {status}",

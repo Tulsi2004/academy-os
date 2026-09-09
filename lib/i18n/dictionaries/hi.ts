@@ -146,6 +146,8 @@ export const hi: Dictionary = {
       notePlaceholder: "चलकर आए थे, फ़ीस के बारे में पूछा",
       save: "सहेजें",
       saveAndAnother: "सहेजें और एक और जोड़ें",
+      saveAndAdmit: "सहेजें और दाख़िला दें",
+      admitHint: "क्या वे जुड़ना तय कर चुके हैं? इससे पूछताछ सहेजकर दाख़िला फ़ॉर्म खुल जाएगा।",
       saved: "{name} सहेजा गया। अगला जोड़ें।",
       duplicateEnquiry: "{name} ने {when} पूछताछ की थी",
       duplicateEnquiryWithStatus: "{name} ने {when} पूछताछ की थी — {status}",

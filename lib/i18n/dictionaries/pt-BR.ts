@@ -147,6 +147,8 @@ export const ptBR: Dictionary = {
       notePlaceholder: "Veio sem agendar, perguntou o valor",
       save: "Salvar",
       saveAndAnother: "Salvar e cadastrar outro",
+      saveAndAdmit: "Salvar e matricular",
+      admitHint: "Já tem certeza de que vai entrar? Isso salva o contato e abre o formulário de matrícula.",
       saved: "{name} salvo. Cadastre o próximo.",
       duplicateEnquiry: "{name} procurou {when}",
       duplicateEnquiryWithStatus: "{name} procurou {when} — {status}",

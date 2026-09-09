@@ -146,6 +146,8 @@ export const ja: Dictionary = {
       notePlaceholder: "飛び込みで来訪、月謝について質問",
       save: "保存",
       saveAndAnother: "保存して次を登録",
+      saveAndAdmit: "保存して入会手続きへ",
+      admitHint: "入会が決まっていますか？問い合わせを保存して、入会フォームを開きます。",
       saved: "{name} を保存しました。次を登録してください。",
       duplicateEnquiry: "{name} さんは{when}問い合わせています",
       duplicateEnquiryWithStatus: "{name} さんは{when}問い合わせています — {status}",

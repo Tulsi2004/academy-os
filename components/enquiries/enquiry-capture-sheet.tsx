@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { PlusIcon } from "lucide-react";
+import { GraduationCapIcon, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export function EnquiryCaptureSheet({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [match, setMatch] = useState<{ phone: string; result: PhoneMatch | null } | null>(null);
-  const [saving, setSaving] = useState<null | "save" | "another">(null);
+  const [saving, setSaving] = useState<null | "save" | "another" | "admit">(null);
   const [justSaved, setJustSaved] = useState<string | null>(null);
 
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -113,8 +113,8 @@ export function EnquiryCaptureSheet({
     list behind the sheet can repaint in its own time; the next enquiry should
     never wait for it.
   */
-  async function save(addAnother: boolean) {
-    setSaving(addAnother ? "another" : "save");
+  async function save(mode: "save" | "another" | "admit") {
+    setSaving(mode);
     setError(null);
     try {
       const result = await createEnquiry(values);
@@ -127,13 +127,27 @@ export function EnquiryCaptureSheet({
       const savedName = values.studentName.trim();
       reset();
 
-      if (addAnother) {
+      if (mode === "another") {
         // The only signal that anything happened: the fields clear instantly,
         // so without this it reads as "nothing was saved".
         setJustSaved(savedName);
         phoneRef.current?.focus();
-      } else {
-        setOpen(false);
+        router.refresh();
+        return;
+      }
+
+      setOpen(false);
+
+      /*
+        A walk-in who has already decided should not be filed as an enquiry and
+        then hunted down in the list to be admitted. The enquiry row is still
+        created — conversion needs something to attach the Student to, and it is
+        what makes the admission countable as one — but the desk goes straight
+        to the admission form with the name and phone already filled in.
+      */
+      if (mode === "admit") {
+        router.push(`/enquiries/${result.id}/convert`);
+        return;
       }
 
       router.refresh();
@@ -206,7 +220,7 @@ export function EnquiryCaptureSheet({
           className="flex flex-1 flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault();
-            save(false);
+            save("save");
           }}
         >
           <Field label={t.enquiries.capture.phone} error={fieldErrors.phone}>
@@ -287,20 +301,47 @@ export function EnquiryCaptureSheet({
             <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <div className="mt-auto flex flex-col-reverse gap-2 pt-2 sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              disabled={saving !== null}
-              onClick={() => save(true)}
-              className="sm:flex-1"
-            >
-              {saving === "another" ? t.common.saving : t.enquiries.capture.saveAndAnother}
-            </Button>
-            <Button type="submit" size="lg" disabled={saving !== null} className="sm:flex-1">
-              {saving === "save" ? t.common.saving : t.enquiries.capture.save}
-            </Button>
+          <div className="mt-auto space-y-3 pt-2">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                disabled={saving !== null}
+                onClick={() => save("another")}
+                className="sm:flex-1"
+              >
+                {saving === "another" ? t.common.saving : t.enquiries.capture.saveAndAnother}
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={saving !== null}
+                className="shadow-sm sm:flex-1"
+              >
+                {saving === "save" ? t.common.saving : t.enquiries.capture.save}
+              </Button>
+            </div>
+
+            {/* Set apart rather than lined up as a third equal button: it is the
+                rarer path, and it leaves this screen instead of finishing on
+                it, which the reader should know before pressing it. */}
+            <div className="border-t border-border pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                disabled={saving !== null}
+                onClick={() => save("admit")}
+                className="w-full"
+              >
+                <GraduationCapIcon aria-hidden="true" />
+                {saving === "admit" ? t.common.saving : t.enquiries.capture.saveAndAdmit}
+              </Button>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {t.enquiries.capture.admitHint}
+              </p>
+            </div>
           </div>
         </form>
       </SheetContent>

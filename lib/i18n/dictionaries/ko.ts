@@ -146,6 +146,8 @@ export const ko: Dictionary = {
       notePlaceholder: "그냥 들르셨고, 수강료를 물어보심",
       save: "저장",
       saveAndAnother: "저장하고 계속 추가",
+      saveAndAdmit: "저장하고 등록 진행",
+      admitHint: "등록이 확정되었나요? 문의를 저장하고 등록 양식을 엽니다.",
       saved: "{name} 저장했습니다. 다음 문의를 추가하세요.",
       duplicateEnquiry: "{name} 님이 {when} 문의했습니다",
       duplicateEnquiryWithStatus: "{name} 님이 {when} 문의했습니다 — {status}",

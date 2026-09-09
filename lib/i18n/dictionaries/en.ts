@@ -163,6 +163,8 @@ export const en = {
       notePlaceholder: "Walk-in, asked about fees",
       save: "Save",
       saveAndAnother: "Save and add another",
+      saveAndAdmit: "Save and admit as student",
+      admitHint: "Already sure they are joining? This saves the enquiry and opens the admission form.",
       saved: "Saved {name}. Add the next one.",
       duplicateEnquiry: "{name} enquired {when}",
       duplicateEnquiryWithStatus: "{name} enquired {when} — {status}",
