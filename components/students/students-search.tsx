@@ -3,21 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { enquiriesHref } from "@/lib/enquiries";
-import { useLanguage } from "@/lib/i18n/language-provider";
+import { studentsHref } from "@/lib/students";
 
 /*
   The URL is the source of truth. `draft` only shadows it between a keystroke
   and the debounced navigation, and is keyed to the query it was typed against
   — so the back button restores the box without an effect writing state.
 */
-export function EnquiriesSearch() {
+export function StudentsSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
 
   const q = searchParams.get("q") ?? "";
-  const status = searchParams.get("status") ?? undefined;
 
   const [draft, setDraft] = useState<{ base: string; value: string } | null>(null);
   const value = draft && draft.base === q ? draft.value : q;
@@ -29,10 +26,10 @@ export function EnquiriesSearch() {
     const timer = setTimeout(() => {
       // Any change to the query resets to page 1 — page 4 of the old result set
       // is meaningless against the new one.
-      router.replace(enquiriesHref({ q: value, status }), { scroll: false });
+      router.replace(studentsHref({ q: value }), { scroll: false });
     }, 300);
     return () => clearTimeout(timer);
-  }, [pending, value, status, router]);
+  }, [pending, value, router]);
 
   return (
     <Input
@@ -40,8 +37,8 @@ export function EnquiriesSearch() {
       name="q"
       value={value}
       onChange={(event) => setDraft({ base: q, value: event.target.value })}
-      placeholder={t.enquiries.search.placeholder}
-      aria-label={t.enquiries.search.label}
+      placeholder="Search student, parent or phone…"
+      aria-label="Search students"
       className="h-9 w-full sm:max-w-xs"
     />
   );

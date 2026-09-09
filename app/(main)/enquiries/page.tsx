@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { EnquiryStatus } from "@/generated/prisma/enums";
 import { requireOrgContext } from "@/lib/auth/org-context";
-import { ENQUIRY_STATUS_LABELS, enquiriesHref } from "@/lib/enquiries";
-import { listEnquiries } from "@/lib/enquiries-query";
+import { enquiriesHref } from "@/lib/enquiries";
+import { dueFollowUpCount, enquirySummary, listEnquiries } from "@/lib/enquiries-query";
+import { listCourseOptions } from "@/lib/courses-query";
+import { getDictionary } from "@/lib/i18n/server";
+import { fill, pluralize } from "@/lib/i18n/format";
+import { AttentionBar } from "@/components/enquiries/attention-bar";
 import { EnquiriesHeader } from "@/components/enquiries/enquiries-header";
 import { EnquiriesSearch } from "@/components/enquiries/enquiries-search";
 import { EnquiriesTable } from "@/components/enquiries/enquiries-table";
+import { StatusFilter } from "@/components/enquiries/status-filter";
 
 const STATUS_FILTERS = Object.values(EnquiryStatus);
 
@@ -22,79 +27,82 @@ export default async function EnquiriesPage({
   const requestedPage = Number.parseInt(page ?? "1", 10);
 
   const { organizationId } = await requireOrgContext();
-  const result = await listEnquiries({
-    organizationId,
-    q,
-    status: activeStatus,
-    page: Number.isFinite(requestedPage) ? requestedPage : 1,
-  });
+  const [result, summary, dueCount, courses, { t }] = await Promise.all([
+    listEnquiries({
+      organizationId,
+      q,
+      status: activeStatus,
+      page: Number.isFinite(requestedPage) ? requestedPage : 1,
+    }),
+    enquirySummary({ organizationId, q }),
+    dueFollowUpCount(organizationId),
+    listCourseOptions(organizationId),
+    getDictionary(),
+  ]);
 
   const searching = Boolean(q?.trim()) || Boolean(activeStatus);
 
   return (
     <div className="space-y-6">
-      <EnquiriesHeader />
+      <EnquiriesHeader courses={courses} dueCount={dueCount} />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Only when nothing is filtered: with a search or a status applied, the
+          strip would be counting a different set of enquiries from the table
+          under it, which is worse than not showing it at all. */}
+      {!searching && (
+        <AttentionBar
+          overdue={summary.overdue}
+          dueToday={summary.dueToday}
+          uncontacted={summary.byStatus.NEW}
+        />
+      )}
+
+      <div className="flex flex-col gap-3">
         <EnquiriesSearch />
-        {result.dueCount > 0 && (
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{result.dueCount}</span> due for
-            follow-up
-          </p>
-        )}
+        <StatusFilter
+          q={q}
+          activeStatus={activeStatus}
+          total={summary.total}
+          byStatus={summary.byStatus}
+        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <FilterChip href={enquiriesHref({ q })} active={!activeStatus} label="All" />
-        {STATUS_FILTERS.map((value) => (
-          <FilterChip
-            key={value}
-            href={enquiriesHref({ q, status: value })}
-            active={activeStatus === value}
-            label={ENQUIRY_STATUS_LABELS[value]}
-          />
-        ))}
-      </div>
+      <EnquiriesTable enquiries={result.rows} filtered={searching} courses={courses} />
 
-      <EnquiriesTable enquiries={result.rows} filtered={searching} />
-
-      {result.pageCount > 1 && (
-        <div className="flex items-center justify-between gap-4">
+      {(result.pageCount > 1 || result.total > 0) && (
+        <div className="flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:items-center">
           <p className="text-sm text-muted-foreground">
-            Page {result.page} of {result.pageCount} · {result.total}{" "}
-            {result.total === 1 ? "enquiry" : "enquiries"}
+            {pluralize(
+              { one: t.enquiries.pagination.countOne, other: t.enquiries.pagination.countOther },
+              result.total,
+            )}
+            {result.pageCount > 1 && (
+              <>
+                {" · "}
+                {fill(t.enquiries.pagination.page, {
+                  page: result.page,
+                  pages: result.pageCount,
+                })}
+              </>
+            )}
           </p>
-          <div className="flex items-center gap-2">
-            <PageLink
-              href={enquiriesHref({ q, status: activeStatus, page: result.page - 1 })}
-              disabled={result.page <= 1}
-              label="Previous"
-            />
-            <PageLink
-              href={enquiriesHref({ q, status: activeStatus, page: result.page + 1 })}
-              disabled={result.page >= result.pageCount}
-              label="Next"
-            />
-          </div>
+          {result.pageCount > 1 && (
+            <div className="flex items-center gap-2">
+              <PageLink
+                href={enquiriesHref({ q, status: activeStatus, page: result.page - 1 })}
+                disabled={result.page <= 1}
+                label={t.common.previous}
+              />
+              <PageLink
+                href={enquiriesHref({ q, status: activeStatus, page: result.page + 1 })}
+                disabled={result.page >= result.pageCount}
+                label={t.common.next}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
-  );
-}
-
-function FilterChip({ href, active, label }: { href: string; active: boolean; label: string }) {
-  return (
-    <Link
-      href={href}
-      className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-muted-foreground hover:bg-muted"
-      }`}
-    >
-      {label}
-    </Link>
   );
 }
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { errorKey } from "@/lib/i18n/messages";
 import { ExperienceLevel } from "@/generated/prisma/enums";
 import { phoneSchema } from "@/lib/validations/enquiry";
 
@@ -6,7 +7,7 @@ const optionalText = (max: number) =>
   z
     .string()
     .trim()
-    .max(max)
+    .max(max, errorKey("tooLong"))
     .transform((value) => value || undefined)
     .optional();
 
@@ -15,7 +16,7 @@ const optionalDate = z
   .trim()
   .optional()
   .transform((value) => (value ? new Date(value) : undefined))
-  .refine((value) => !value || !Number.isNaN(value.getTime()), "Enter a valid date");
+  .refine((value) => !value || !Number.isNaN(value.getTime()), errorKey("dateInvalid"));
 
 const optionalPhone = z
   .string()
@@ -29,7 +30,7 @@ const optionalEmail = z
   .trim()
   .optional()
   .transform((value) => (value ? value : undefined))
-  .pipe(z.string().email("Enter a valid email").optional());
+  .pipe(z.string().email(errorKey("emailInvalid")).optional());
 
 /*
   This is the one screen where the fuller details are justified — the person is
@@ -38,7 +39,7 @@ const optionalEmail = z
 */
 export const convertEnquirySchema = z.object({
   // Student
-  firstName: z.string().trim().min(1, "First name is required").max(60),
+  firstName: z.string().trim().min(1, errorKey("firstNameRequired")).max(60, errorKey("tooLong")),
   lastName: optionalText(60),
   dateOfBirth: optionalDate,
   experience: z
@@ -52,7 +53,11 @@ export const convertEnquirySchema = z.object({
   studentEmail: optionalEmail,
 
   // Parent — a Parent row needs both, and the phone is what future lookups key on.
-  parentName: z.string().trim().min(1, "Parent name is required").max(100),
+  parentName: z
+    .string()
+    .trim()
+    .min(1, errorKey("parentNameRequired"))
+    .max(100, errorKey("tooLong")),
   parentPhone: phoneSchema,
   parentEmail: optionalEmail,
 
@@ -78,7 +83,7 @@ export const convertEnquirySchema = z.object({
     })
     .refine(
       (value) => value === undefined || (Number.isFinite(value) && value > 0 && value < 10_000_000),
-      "Enter a fee amount of zero or more",
+      errorKey("feeInvalid"),
     ),
 });
 

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { convertEnquiry } from "@/lib/actions/conversion";
-import { EXPERIENCE_LABELS, EXPERIENCE_OPTIONS } from "@/lib/enquiries";
+import { EXPERIENCE_OPTIONS } from "@/lib/enquiries";
+import { useLanguage } from "@/lib/i18n/language-provider";
+import { translateFieldErrors, translateMessage } from "@/lib/i18n/messages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +36,7 @@ export function ConvertForm({
   batches: BatchOption[];
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [values, setValues] = useState({
     firstName: defaults.firstName,
     lastName: defaults.lastName,
@@ -63,16 +66,16 @@ export function ConvertForm({
     try {
       const result = await convertEnquiry(enquiryId, values);
       if (!result.ok) {
-        setError(result.error);
-        setFieldErrors(result.fieldErrors ?? {});
+        setError(translateMessage(result.error, t));
+        setFieldErrors(translateFieldErrors(result.fieldErrors, t));
         return;
       }
-      // Students isn't built yet, so the enquiry itself is where the outcome is
-      // visible — it now reads as admitted, with the new student's name.
-      router.push(`/enquiries/${enquiryId}`);
+      // Land on the record that was just created, not back on the enquiry —
+      // the next thing anyone does is check the student's details.
+      router.push(`/students/${result.studentId}`);
       router.refresh();
     } catch {
-      setError("Could not complete the conversion. Nothing was saved — try again.");
+      setError(t.errors.convertFailed);
     } finally {
       setSaving(false);
     }
@@ -86,26 +89,26 @@ export function ConvertForm({
         submit();
       }}
     >
-      <Section title="Student">
+      <Section title={t.enquiries.convert.studentSection}>
         <Grid>
-          <FieldWrap label="First name" error={fieldErrors.firstName}>
+          <FieldWrap label={t.enquiries.convert.firstName} error={fieldErrors.firstName}>
             <Input
               value={values.firstName}
               onChange={(e) => set("firstName", e.target.value)}
               aria-invalid={Boolean(fieldErrors.firstName)}
             />
           </FieldWrap>
-          <FieldWrap label="Last name" error={fieldErrors.lastName} optional>
+          <FieldWrap label={t.enquiries.convert.lastName} error={fieldErrors.lastName} optional>
             <Input value={values.lastName} onChange={(e) => set("lastName", e.target.value)} />
           </FieldWrap>
-          <FieldWrap label="Date of birth" error={fieldErrors.dateOfBirth} optional>
+          <FieldWrap label={t.enquiries.convert.dateOfBirth} error={fieldErrors.dateOfBirth} optional>
             <Input
               type="date"
               value={values.dateOfBirth}
               onChange={(e) => set("dateOfBirth", e.target.value)}
             />
           </FieldWrap>
-          <FieldWrap label="Experience" error={fieldErrors.experience} optional>
+          <FieldWrap label={t.enquiries.convert.experience} error={fieldErrors.experience} optional>
             <Select
               value={values.experience || null}
               onValueChange={(value) => set("experience", (value as string) ?? "")}
@@ -113,20 +116,22 @@ export function ConvertForm({
               <SelectTrigger className="w-full">
                 <SelectValue>
                   {(value: string | null) =>
-                    value ? EXPERIENCE_LABELS[value as keyof typeof EXPERIENCE_LABELS] : "Not set"
+                    value
+                      ? t.enquiries.experience[value as keyof typeof t.enquiries.experience]
+                      : t.common.notSet
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {EXPERIENCE_OPTIONS.map((level) => (
                   <SelectItem key={level} value={level}>
-                    {EXPERIENCE_LABELS[level]}
+                    {t.enquiries.experience[level]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </FieldWrap>
-          <FieldWrap label="Student phone" error={fieldErrors.studentPhone} optional>
+          <FieldWrap label={t.enquiries.convert.studentPhone} error={fieldErrors.studentPhone} optional>
             <Input
               type="tel"
               inputMode="numeric"
@@ -135,7 +140,7 @@ export function ConvertForm({
               aria-invalid={Boolean(fieldErrors.studentPhone)}
             />
           </FieldWrap>
-          <FieldWrap label="Student email" error={fieldErrors.studentEmail} optional>
+          <FieldWrap label={t.enquiries.convert.studentEmail} error={fieldErrors.studentEmail} optional>
             <Input
               type="email"
               value={values.studentEmail}
@@ -144,7 +149,7 @@ export function ConvertForm({
             />
           </FieldWrap>
         </Grid>
-        <FieldWrap label="Address" error={fieldErrors.address} optional>
+        <FieldWrap label={t.enquiries.convert.address} error={fieldErrors.address} optional>
           <Textarea
             rows={2}
             value={values.address}
@@ -154,18 +159,18 @@ export function ConvertForm({
       </Section>
 
       <Section
-        title="Parent / guardian"
-        hint="Matched on phone — an existing parent with this number is reused, not duplicated."
+        title={t.enquiries.convert.parentSection}
+        hint={t.enquiries.convert.parentHint}
       >
         <Grid>
-          <FieldWrap label="Name" error={fieldErrors.parentName}>
+          <FieldWrap label={t.enquiries.convert.parentName} error={fieldErrors.parentName}>
             <Input
               value={values.parentName}
               onChange={(e) => set("parentName", e.target.value)}
               aria-invalid={Boolean(fieldErrors.parentName)}
             />
           </FieldWrap>
-          <FieldWrap label="Phone" error={fieldErrors.parentPhone}>
+          <FieldWrap label={t.enquiries.convert.parentPhone} error={fieldErrors.parentPhone}>
             <Input
               type="tel"
               inputMode="numeric"
@@ -174,7 +179,7 @@ export function ConvertForm({
               aria-invalid={Boolean(fieldErrors.parentPhone)}
             />
           </FieldWrap>
-          <FieldWrap label="Email" error={fieldErrors.parentEmail} optional>
+          <FieldWrap label={t.enquiries.convert.parentEmail} error={fieldErrors.parentEmail} optional>
             <Input
               type="email"
               value={values.parentEmail}
@@ -185,10 +190,10 @@ export function ConvertForm({
         </Grid>
       </Section>
 
-      <Section title="Enrolment">
+      <Section title={t.enquiries.convert.enrolmentSection}>
         <Grid>
           {batches.length > 0 ? (
-            <FieldWrap label="Batch" error={fieldErrors.batchId} optional>
+            <FieldWrap label={t.enquiries.convert.batch} error={fieldErrors.batchId} optional>
               <Select
                 value={values.batchId || null}
                 onValueChange={(value) => set("batchId", (value as string) ?? "")}
@@ -196,7 +201,8 @@ export function ConvertForm({
                 <SelectTrigger className="w-full">
                   <SelectValue>
                     {(value: string | null) =>
-                      batches.find((batch) => batch.id === value)?.label ?? "No batch yet"
+                      batches.find((batch) => batch.id === value)?.label ??
+                      t.enquiries.convert.batchPlaceholder
                     }
                   </SelectValue>
                 </SelectTrigger>
@@ -210,13 +216,10 @@ export function ConvertForm({
               </Select>
             </FieldWrap>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No batches exist yet, so the student is admitted without one. They can be
-              enrolled once Batches is built.
-            </p>
+            <p className="text-sm text-muted-foreground">{t.enquiries.convert.noBatches}</p>
           )}
 
-          <FieldWrap label="Registration fee (INR)" error={fieldErrors.registrationFee} optional>
+          <FieldWrap label={t.enquiries.convert.registrationFee} error={fieldErrors.registrationFee} optional>
             <Input
               type="number"
               min="0"
@@ -234,7 +237,7 @@ export function ConvertForm({
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" size="lg" disabled={saving}>
-        {saving ? "Converting…" : "Convert to student"}
+        {saving ? t.enquiries.convert.submitting : t.enquiries.convert.submit}
       </Button>
     </form>
   );
@@ -275,11 +278,13 @@ function FieldWrap({
   optional?: boolean;
   children: React.ReactNode;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-1.5">
       <Label>
         {label}
-        {optional && <span className="ml-1 text-muted-foreground">(optional)</span>}
+        {optional && <span className="ml-1 text-muted-foreground">({t.common.optional})</span>}
       </Label>
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}

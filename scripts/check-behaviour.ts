@@ -38,7 +38,11 @@ async function main() {
     "../lib/validations/enquiry"
   );
   const { convertEnquirySchema } = await import("../lib/validations/conversion");
-  const { formatFollowUp } = await import("../lib/enquiries");
+  const { followUpTone } = await import("../lib/enquiries");
+  const { listCourses, listCourseOptions } = await import("../lib/courses-query");
+  const { createCourseSchema } = await import("../lib/validations/course");
+  const { listStudents } = await import("../lib/students-query");
+  const { studentName, ageInYears } = await import("../lib/students");
 
   const org = await prisma.organization.findUniqueOrThrow({
     where: { slug: "the-tulsi-academy" },
@@ -47,6 +51,7 @@ async function main() {
   const organizationId = org.id;
 
   const before = {
+    courses: await prisma.course.count(),
     enquiries: await prisma.enquiry.count(),
     students: await prisma.student.count(),
     parents: await prisma.parent.count(),
@@ -58,6 +63,7 @@ async function main() {
   const madeEnquiries: string[] = [];
   const madeStudents: string[] = [];
   const madeParents: string[] = [];
+  const madeCourses: string[] = [];
 
   try {
     // ---------------------------------------------------------------- Part 1
@@ -211,10 +217,10 @@ async function main() {
       dueRows.map((r) => r.studentName),
       ["ZZTEST Overdue", "ZZTEST Today"],
     );
-    eq("overdue tone", formatFollowUp(daysFromToday(-1)).tone, "overdue");
-    eq("today tone", formatFollowUp(daysFromToday(0)).tone, "today");
-    eq("tomorrow tone", formatFollowUp(daysFromToday(1)).tone, "tomorrow");
-    eq("no-date tone", formatFollowUp(null).tone, "none");
+    eq("overdue tone", followUpTone(daysFromToday(-1)), "overdue");
+    eq("today tone", followUpTone(daysFromToday(0)), "today");
+    eq("tomorrow tone", followUpTone(daysFromToday(1)), "tomorrow");
+    eq("no-date tone", followUpTone(null), "none");
 
     // ---------------------------------------------------------------- Part 4
     console.log("\nPart 4 — notes timeline and conversion");
@@ -446,12 +452,152 @@ async function main() {
     eq("rows sharing a timestamp keep a stable order", orderA, orderB);
     check("all three twins are listed", orderA.length === 3, `got ${orderA.length}`);
 
+    // ---------------------------------------------------------------- Part 5
+    console.log("\nPart 5 — courses and students");
+
+    check("course name is required", !createCourseSchema.safeParse({ name: "  " }).success);
+    const parsedCourse = createCourseSchema.safeParse({
+      name: "  ZZTEST Keyboard  ",
+      description: "   ",
+    });
+    check("course name is trimmed", parsedCourse.success && parsedCourse.data.name === "ZZTEST Keyboard");
+    check(
+      "a blank description is dropped rather than stored empty",
+      parsedCourse.success && parsedCourse.data.description === undefined,
+    );
+
+    const activeCourse = await prisma.course.create({
+      data: { organizationId, name: "ZZTEST Keyboard", description: "Grade 1" },
+      select: { id: true },
+    });
+    madeCourses.push(activeCourse.id);
+    const archivedCourse = await prisma.course.create({
+      data: { organizationId, name: "ZZTEST Archived Tabla", active: false },
+      select: { id: true },
+    });
+    madeCourses.push(archivedCourse.id);
+
+    const options = await listCourseOptions(organizationId);
+    const optionIds = options.map((option) => option.id);
+    check("an active course is offered in the dropdown", optionIds.includes(activeCourse.id));
+    check(
+      "an archived course is withdrawn from the dropdown",
+      !optionIds.includes(archivedCourse.id),
+    );
+    const optionNames = options.map((option) => option.name);
+    eq("dropdown options are sorted by name", optionNames, [...optionNames].sort());
+
+    /*
+      The guard createCourse() relies on to refuse a duplicate. If the database
+      ever stopped honouring `mode: "insensitive"` the action would silently
+      start allowing two courses with the same name.
+    */
+    const caseClash = await prisma.course.findFirst({
+      where: { organizationId, name: { equals: "zzTEST keyboard", mode: "insensitive" } },
+      select: { id: true },
+    });
+    eq("a duplicate name is caught whatever the casing", caseClash?.id, activeCourse.id);
+
+    const allCourses = await listCourses(organizationId);
+    const listedIds = allCourses.map((course) => course.id);
+    check("the course list includes archived courses", listedIds.includes(archivedCourse.id));
+    check(
+      "active courses sort above archived ones",
+      listedIds.indexOf(activeCourse.id) < listedIds.indexOf(archivedCourse.id),
+    );
+
+    // An enquiry naming a course is what makes "how many for Keyboard?" answerable.
+    const courseEnquiry = await prisma.enquiry.create({
+      data: {
+        organizationId,
+        studentName: "ZZTEST Course Enquiry",
+        phone: "7000000021",
+        courseId: activeCourse.id,
+      },
+      select: { id: true },
+    });
+    madeEnquiries.push(courseEnquiry.id);
+    const counted = (await listCourses(organizationId)).find((c) => c.id === activeCourse.id);
+    eq("a course counts the enquiries that named it", counted?._count.enquiries, 1);
+
+    // -- Students --------------------------------------------------------
+    const searchParent = await prisma.parent.create({
+      data: { organizationId, name: "ZZTEST Meera Iyer", phone: "7000000031" },
+      select: { id: true },
+    });
+    madeParents.push(searchParent.id);
+    const searchStudent = await prisma.student.create({
+      data: {
+        organizationId,
+        parentId: searchParent.id,
+        firstName: "ZZTESTKavya",
+        lastName: "Iyer",
+        phone: "7000000032",
+        dateOfBirth: new Date("2015-04-01T06:00:00.000Z"),
+      },
+      select: { id: true },
+    });
+    madeStudents.push(searchStudent.id);
+
+    const found = async (q: string) =>
+      (await listStudents({ organizationId, q, page: 1 })).rows.map((row) => row.id);
+
+    check("a student is found by first name", (await found("ZZTESTKavya")).includes(searchStudent.id));
+    check(
+      "a student is found by a name spanning both columns",
+      (await found("ZZTESTKavya Iyer")).includes(searchStudent.id),
+    );
+    check("a student is found by last name alone", (await found("Iyer")).includes(searchStudent.id));
+    check(
+      "a student is found by the parent's name",
+      (await found("ZZTEST Meera")).includes(searchStudent.id),
+    );
+    check(
+      "a student is found by the parent's phone",
+      (await found("7000000031")).includes(searchStudent.id),
+    );
+    check(
+      "a parent's phone is found however it was typed",
+      (await found("+91 70000 00031")).includes(searchStudent.id),
+    );
+    check(
+      "a student is found by their own phone",
+      (await found("7000000032")).includes(searchStudent.id),
+    );
+    eq("a search matching nobody returns nothing", await found("ZZTESTNoSuchPerson"), []);
+
+    const listed = (await listStudents({ organizationId, q: "ZZTESTKavya", page: 1 })).rows[0];
+    eq("the row carries the parent to call", listed?.parent?.phone, "7000000031");
+    eq("the row carries the batch count", listed?._count.enrollments, 0);
+    eq(
+      "a student with no last name still renders a name",
+      studentName({ firstName: "Kavya", lastName: null }),
+      "Kavya",
+    );
+    eq(
+      "age is whole years, and a birthday later this year has not happened yet",
+      ageInYears(new Date("2015-04-01T06:00:00.000Z"), new Date("2026-03-31T06:00:00.000Z")),
+      10,
+    );
+    eq(
+      "age ticks over on the birthday itself",
+      ageInYears(new Date("2015-04-01T06:00:00.000Z"), new Date("2026-04-01T06:00:00.000Z")),
+      11,
+    );
+
+    const studentPage = await listStudents({ organizationId, q: "ZZTEST", page: 999 });
+    check("student pagination clamps beyond the last page", studentPage.page === studentPage.pageCount);
+
     // -------------------------------------------------------------- Tenancy
     console.log("\nTenancy");
     const other = await prisma.organization.findFirst({ where: { slug: "your-academy" } });
     if (other) {
       const leak = await listEnquiries({ organizationId: other.id, page: 1 });
       eq("other organization sees nothing", leak.total, 0);
+      const studentLeak = await listStudents({ organizationId: other.id, q: "ZZTEST", page: 1 });
+      eq("other organization sees no students", studentLeak.total, 0);
+      const courseLeak = await listCourseOptions(other.id);
+      eq("other organization sees no courses", courseLeak.length, 0);
     }
     const mismatched = await prisma.enquiry.count({
       where: { organizationId, id: { in: madeEnquiries } },
@@ -469,8 +615,10 @@ async function main() {
     await prisma.student.deleteMany({ where: { id: { in: madeStudents } } });
     await prisma.parent.deleteMany({ where: { id: { in: madeParents } } });
     await prisma.enquiry.deleteMany({ where: { id: { in: madeEnquiries } } });
+    await prisma.course.deleteMany({ where: { id: { in: madeCourses } } });
 
     const after = {
+      courses: await prisma.course.count(),
       enquiries: await prisma.enquiry.count(),
       students: await prisma.student.count(),
       parents: await prisma.parent.count(),

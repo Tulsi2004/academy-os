@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { errorKey } from "@/lib/i18n/messages";
 import { EnquiryStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { getOrgContext } from "@/lib/auth/org-context";
@@ -23,6 +24,11 @@ const optionalDate = z
   .optional()
   .transform((value) => (value ? new Date(value) : undefined));
 
+/*
+  `error` carries a dictionary key ("errors.checkForm"), not a sentence — the
+  form that renders it resolves it against the reader's language. See
+  lib/i18n/messages.ts.
+*/
 export type EnquiryActionState = {
   error?: string;
   success?: boolean;
@@ -51,18 +57,38 @@ export async function createEnquiry(input: unknown): Promise<CreateEnquiryResult
     }
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? "Please check the form and try again.",
+      error: parsed.error.issues[0]?.message ?? errorKey("checkForm"),
       fieldErrors,
     };
   }
 
-  const { notes, ...fields } = parsed.data;
+  const { notes, courseId, ...fields } = parsed.data;
+
+  /*
+    `courseId` arrives from the capture sheet's dropdown, so it is caller-
+    supplied and must be proved to belong to this organization. Without the
+    check, a foreign id reaches the composite foreign key and fails as an opaque
+    500 rather than a message anyone can act on.
+  */
+  if (courseId) {
+    const course = await prisma.course.findFirst({
+      where: { id: courseId, organizationId },
+      select: { id: true },
+    });
+    if (!course) {
+      return {
+        ok: false,
+        error: errorKey("courseGone"),
+        fieldErrors: { courseId: errorKey("courseGone") },
+      };
+    }
+  }
 
   // One transaction so an enquiry never lands without the note that was typed
   // alongside it.
   const enquiry = await prisma.$transaction(async (tx) => {
     const created = await tx.enquiry.create({
-      data: { ...fields, organizationId, status: "NEW" },
+      data: { ...fields, courseId: courseId ?? null, organizationId, status: "NEW" },
     });
     if (notes) {
       await tx.enquiryNote.create({
@@ -155,7 +181,7 @@ export async function updateEnquiry(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Please check the form and try again." };
+    return { error: parsed.error.issues[0]?.message ?? errorKey("checkForm") };
   }
 
   const { organizationId, userId } = await getOrgContext();
@@ -165,7 +191,7 @@ export async function updateEnquiry(
     select: { id: true, convertedStudentId: true },
   });
   if (!existing) {
-    return { error: "Enquiry not found." };
+    return { error: errorKey("enquiryNotFound") };
   }
 
   /*

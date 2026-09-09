@@ -1,0 +1,253 @@
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+
+export const de: Dictionary = {
+  common: {
+    optional: "optional",
+    save: "Speichern",
+    saving: "Wird gespeichert…",
+    previous: "Zurück",
+    next: "Weiter",
+    notSet: "Nicht festgelegt",
+    none: "—",
+  },
+
+  app: {
+    name: "Academy OS",
+  },
+
+  nav: {
+    dashboard: "Übersicht",
+    enquiries: "Anfragen",
+    students: "Schüler",
+    parents: "Eltern",
+    courses: "Kurse",
+    batches: "Gruppen",
+    teachers: "Lehrkräfte",
+    attendance: "Anwesenheit",
+    fees: "Gebühren",
+    events: "Veranstaltungen",
+    exams: "Prüfungen",
+    documents: "Dokumente",
+    settings: "Einstellungen",
+    soon: "Bald",
+    comingSoon: "{label} — kommt bald",
+    openMenu: "Menü öffnen",
+    closeMenu: "Menü schließen",
+    search: "Suchen",
+    notifications: "Benachrichtigungen",
+  },
+
+  languageSwitcher: {
+    label: "Sprache",
+    change: "Sprache ändern",
+  },
+
+  enquiries: {
+    title: "Anfragen",
+    subtitle: "Alle, die nach einem Platz gefragt haben — und wen Sie als Nächstes anrufen.",
+    tabs: {
+      all: "Alle Anfragen",
+      followUps: "Anzurufen",
+    },
+    newEnquiry: "Neue Anfrage",
+    backToList: "Zurück zu den Anfragen",
+    search: {
+      placeholder: "Nach Name oder Telefonnummer suchen…",
+      label: "Anfragen durchsuchen",
+    },
+
+    attention: {
+      heading: "Braucht Aufmerksamkeit",
+      overdue: "Überfällig",
+      overdueHint: "Der Rückruftermin ist bereits vorbei",
+      dueToday: "Heute fällig",
+      dueTodayHint: "Für heute wurde ein Rückruf zugesagt",
+      uncontacted: "Noch nicht angerufen",
+      uncontactedHint: "Angefragt, aber noch niemand hat mit ihnen gesprochen",
+      allClear: "Nichts überfällig, und niemand wartet auf einen Anruf.",
+    },
+
+    filters: {
+      label: "Nach Status filtern",
+      all: "Alle",
+    },
+
+    status: {
+      NEW: "Neu",
+      CONTACTED: "Gesprochen",
+      INTERESTED: "Interessiert",
+      FOLLOW_UP: "Rückruf",
+      ADMITTED: "Angemeldet",
+      LOST: "Kommt nicht",
+    },
+    statusHint: {
+      NEW: "Gerade erst eingegangen. Noch niemand hat angerufen.",
+      CONTACTED: "Wir haben einmal mit ihnen gesprochen.",
+      INTERESTED: "Sie wollen kommen. Einzelheiten sind noch offen.",
+      FOLLOW_UP: "Wir haben einen Rückruf zu einem festen Termin vereinbart.",
+      ADMITTED: "An der Akademie angemeldet — jetzt Schüler.",
+      LOST: "Haben sich dagegen entschieden.",
+    },
+
+    columns: {
+      name: "Name",
+      phone: "Telefon",
+      interestedIn: "Möchte lernen",
+      status: "Status",
+      followUp: "Rückruf",
+      added: "Angefragt",
+      actions: "Aktionen",
+    },
+
+    followUp: {
+      none: "Kein Termin",
+      overdue: "Überfällig",
+      overdueOn: "War fällig am {date}",
+      today: "Heute",
+      tomorrow: "Morgen",
+      on: "{date}",
+    },
+
+    row: {
+      call: "Anrufen",
+      whatsapp: "WhatsApp",
+      callAria: "{name} unter {phone} anrufen",
+      whatsappAria: "{name} über WhatsApp schreiben",
+      openAria: "Anfrage von {name} öffnen",
+    },
+
+    empty: {
+      none: "Noch keine Anfragen.",
+      noneHint:
+        "Sobald jemand nach dem Unterricht fragt, hier eintragen — das dauert etwa zehn Sekunden.",
+      addFirst: "Erste Anfrage eintragen",
+      noMatch: "Zu dieser Suche passt nichts.",
+      noMatchHint: "Versuchen Sie einen Teil des Namens oder die letzten Ziffern der Nummer.",
+      clearFilters: "Filter entfernen",
+    },
+
+    pagination: {
+      page: "Seite {page} von {pages}",
+      countOne: "{count} Anfrage",
+      countOther: "{count} Anfragen",
+    },
+
+    capture: {
+      title: "Neue Anfrage",
+      description: "Telefonnummer und Name genügen. Alles Weitere wird bei der Anmeldung gefragt.",
+      phone: "Telefon",
+      phonePlaceholder: "98765 43210",
+      studentName: "Name des Schülers",
+      studentNamePlaceholder: "Kavya Sharma",
+      interestedIn: "Möchte lernen",
+      interestedInPlaceholder: "Keyboard, Wochenendgruppe",
+      course: "Kurs",
+      coursePlaceholder: "Noch unklar",
+      note: "Notiz",
+      notePlaceholder: "Kam spontan vorbei, fragte nach den Gebühren",
+      save: "Speichern",
+      saveAndAnother: "Speichern und weitere eintragen",
+      saved: "{name} gespeichert. Nächste eintragen.",
+      duplicateEnquiry: "{name} hat {when} angefragt",
+      duplicateEnquiryWithStatus: "{name} hat {when} angefragt — {status}",
+      duplicateParent: "{name} ist bereits als Elternteil erfasst",
+      openExisting: "Vorhandene Anfrage öffnen",
+      today: "heute",
+      yesterday: "gestern",
+      daysAgo: "vor {count} Tagen",
+    },
+
+    detail: {
+      receivedOn: "Angefragt am {date}",
+      joinedAs: "Angemeldet als {name}.",
+      openStudent: "Schülerakte öffnen",
+      convert: "Als Schüler anmelden",
+      details: "Ihre Angaben",
+      phone: "Telefon",
+      email: "E-Mail",
+      parent: "Eltern / Erziehungsberechtigte",
+      interestedIn: "Möchte lernen",
+      course: "Kurs",
+      experience: "Vorkenntnisse",
+      lastUpdated: "Zuletzt geändert",
+      update: "Diese Anfrage aktualisieren",
+      status: "Wie es steht",
+      statusFixed: "Gesperrt — aus dieser Anfrage ist bereits ein Schüler geworden.",
+      followUpDate: "Rückruf am",
+      followUpHint: "Leer lassen, wenn kein Rückruf nötig ist.",
+      note: "Was ist passiert?",
+      notePlaceholder: "Worüber gesprochen wurde und was als Nächstes ansteht.",
+      noteHint: "Wird unten an den Verlauf angehängt. Bereits Geschriebenes bleibt erhalten.",
+      saveChanges: "Änderungen speichern",
+      updated: "Anfrage aktualisiert.",
+      history: "Verlauf",
+      noHistory: "Noch nichts erfasst. Nach dem ersten Anruf oben eine Notiz hinzufügen.",
+      notRecorded: "Noch nicht erfasst: {fields}",
+    },
+
+    experience: {
+      NONE: "Noch nie gelernt",
+      BEGINNER: "Anfänger",
+      INTERMEDIATE: "Fortgeschritten",
+      ADVANCED: "Sehr fortgeschritten",
+    },
+
+    convert: {
+      back: "Zurück zur Anfrage",
+      title: "{name} anmelden",
+      subtitle:
+        "Damit werden Schüler- und Elternakte angelegt und die Anfrage als angemeldet abgeschlossen.",
+      studentSection: "Schüler",
+      firstName: "Vorname",
+      lastName: "Nachname",
+      dateOfBirth: "Geburtsdatum",
+      experience: "Vorkenntnisse",
+      studentPhone: "Telefon des Schülers",
+      studentEmail: "E-Mail des Schülers",
+      address: "Adresse",
+      parentSection: "Eltern / Erziehungsberechtigte",
+      parentHint:
+        "Zuordnung über die Telefonnummer — ein vorhandener Eintrag mit dieser Nummer wird weiterverwendet, nicht doppelt angelegt.",
+      parentName: "Name",
+      parentPhone: "Telefon",
+      parentEmail: "E-Mail",
+      enrolmentSection: "Anmeldung",
+      batch: "Gruppe",
+      batchPlaceholder: "Noch keine Gruppe",
+      noBatches:
+        "Es gibt noch keine Gruppen, der Schüler wird also ohne angemeldet. Sobald das Gruppen-Modul fertig ist, lässt er sich zuordnen.",
+      registrationFee: "Anmeldegebühr (₹)",
+      submit: "Als Schüler anmelden",
+      submitting: "Wird angemeldet…",
+    },
+  },
+
+  followUps: {
+    title: "Anzurufen",
+    subtitle: "Alle, denen Sie heute oder früher einen Rückruf zugesagt haben.",
+    overdue: "Überfällig",
+    today: "Heute",
+    empty: "Gerade ist niemand anzurufen.",
+    emptyHint: "Anfragen erscheinen hier an dem Tag, an dem der Rückruf fällig ist.",
+  },
+
+  errors: {
+    checkForm: "Bitte prüfen Sie das Formular und versuchen Sie es erneut.",
+    tooLong: "Das ist zu lang",
+    phoneInvalid: "Geben Sie eine 10-stellige Mobilnummer ein",
+    studentNameRequired: "Der Name des Schülers ist erforderlich",
+    firstNameRequired: "Der Vorname ist erforderlich",
+    parentNameRequired: "Der Name des Elternteils ist erforderlich",
+    dateInvalid: "Geben Sie ein gültiges Datum ein",
+    emailInvalid: "Geben Sie eine gültige E-Mail-Adresse ein",
+    feeInvalid: "Geben Sie einen Betrag von null oder mehr ein",
+    courseGone: "Diesen Kurs gibt es nicht mehr.",
+    batchGone: "Diese Gruppe gibt es nicht mehr.",
+    enquiryNotFound: "Anfrage nicht gefunden.",
+    alreadyConverted: "Aus dieser Anfrage ist bereits ein Schüler geworden.",
+    saveFailed:
+      "Die Anfrage konnte nicht gespeichert werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    convertFailed:
+      "Die Anmeldung konnte nicht abgeschlossen werden. Es wurde nichts gespeichert — bitte erneut versuchen.",
+  },
+};

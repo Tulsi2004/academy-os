@@ -2,11 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -16,15 +24,19 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { createEnquiry, findByPhone, type PhoneMatch } from "@/lib/actions/enquiries";
-import { ENQUIRY_STATUS_LABELS } from "@/lib/enquiries";
+import type { CourseOption } from "@/lib/courses-query";
+import { useLanguage } from "@/lib/i18n/language-provider";
+import { fill } from "@/lib/i18n/format";
+import { translateFieldErrors, translateMessage } from "@/lib/i18n/messages";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { isCompletePhone, normalizePhone } from "@/lib/validations/enquiry";
 
-const EMPTY = { phone: "", studentName: "", interestedIn: "", notes: "" };
+const EMPTY = { phone: "", studentName: "", interestedIn: "", courseId: "", notes: "" };
 
-function agoLabel(daysAgo: number) {
-  if (daysAgo === 0) return "today";
-  if (daysAgo === 1) return "yesterday";
-  return `${daysAgo} days ago`;
+function agoLabel(daysAgo: number, t: Dictionary) {
+  if (daysAgo === 0) return t.enquiries.capture.today;
+  if (daysAgo === 1) return t.enquiries.capture.yesterday;
+  return fill(t.enquiries.capture.daysAgo, { count: daysAgo });
 }
 
 /*
@@ -33,13 +45,16 @@ function agoLabel(daysAgo: number) {
   focused, Enter saves, and it never navigates away from the list.
 */
 export function EnquiryCaptureSheet({
-  label = "New Enquiry",
+  label,
   className,
+  courses = [],
 }: {
   label?: string;
   className?: string;
+  courses?: CourseOption[];
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState(EMPTY);
   const [error, setError] = useState<string | null>(null);
@@ -104,8 +119,8 @@ export function EnquiryCaptureSheet({
     try {
       const result = await createEnquiry(values);
       if (!result.ok) {
-        setError(result.error);
-        setFieldErrors(result.fieldErrors ?? {});
+        setError(translateMessage(result.error, t));
+        setFieldErrors(translateFieldErrors(result.fieldErrors, t));
         return;
       }
 
@@ -123,7 +138,7 @@ export function EnquiryCaptureSheet({
 
       router.refresh();
     } catch {
-      setError("Could not save the enquiry. Check your connection and try again.");
+      setError(t.errors.saveFailed);
     } finally {
       setSaving(null);
     }
@@ -137,30 +152,34 @@ export function EnquiryCaptureSheet({
         if (!next) reset();
       }}
     >
-      <SheetTrigger render={<Button size="lg" className={className} />}>
-        {label}
+      <SheetTrigger
+        render={<Button size="lg" className={`shadow-sm ${className ?? ""}`} />}
+      >
+        <PlusIcon aria-hidden="true" />
+        {label ?? t.enquiries.newEnquiry}
       </SheetTrigger>
 
       <SheetContent initialFocus={phoneRef}>
         <SheetHeader>
-          <SheetTitle>New enquiry</SheetTitle>
-          <SheetDescription>
-            Phone and name are enough. Everything else is collected at admission.
-          </SheetDescription>
+          <SheetTitle>{t.enquiries.capture.title}</SheetTitle>
+          <SheetDescription>{t.enquiries.capture.description}</SheetDescription>
         </SheetHeader>
 
         {duplicate && (
           <div className="rounded-lg border border-[#e9974b]/40 bg-[#e9974b]/10 p-3 text-sm">
             <p className="text-foreground">
-              <span className="font-semibold">{duplicate.name}</span>{" "}
-              {duplicate.kind === "enquiry" ? (
-                <>
-                  enquired {agoLabel(duplicate.daysAgo)}
-                  {duplicate.status ? ` — ${ENQUIRY_STATUS_LABELS[duplicate.status]}` : ""}
-                </>
-              ) : (
-                <>is already on file as a parent</>
-              )}
+              {duplicate.kind === "enquiry"
+                ? fill(
+                    duplicate.status
+                      ? t.enquiries.capture.duplicateEnquiryWithStatus
+                      : t.enquiries.capture.duplicateEnquiry,
+                    {
+                      name: duplicate.name,
+                      when: agoLabel(duplicate.daysAgo, t),
+                      status: duplicate.status ? t.enquiries.status[duplicate.status] : "",
+                    },
+                  )
+                : fill(t.enquiries.capture.duplicateParent, { name: duplicate.name })}
             </p>
             {duplicate.kind === "enquiry" && (
               <Link
@@ -168,7 +187,7 @@ export function EnquiryCaptureSheet({
                 onClick={() => setOpen(false)}
                 className="mt-1 inline-block font-medium text-primary hover:underline"
               >
-                Open existing
+                {t.enquiries.capture.openExisting}
               </Link>
             )}
           </div>
@@ -179,7 +198,7 @@ export function EnquiryCaptureSheet({
             role="status"
             className="rounded-lg border border-[#27af90]/40 bg-[#27af90]/10 p-3 text-sm text-foreground"
           >
-            Saved <span className="font-semibold">{justSaved}</span>. Add the next one.
+            {fill(t.enquiries.capture.saved, { name: justSaved })}
           </p>
         )}
 
@@ -190,45 +209,74 @@ export function EnquiryCaptureSheet({
             save(false);
           }}
         >
-          <Field label="Phone" error={fieldErrors.phone}>
+          <Field label={t.enquiries.capture.phone} error={fieldErrors.phone}>
             <Input
               ref={phoneRef}
               name="phone"
               type="tel"
               inputMode="numeric"
               autoComplete="tel"
-              placeholder="98765 43210"
+              placeholder={t.enquiries.capture.phonePlaceholder}
               value={values.phone}
               onChange={(event) => set("phone", event.target.value)}
               aria-invalid={Boolean(fieldErrors.phone)}
             />
           </Field>
 
-          <Field label="Student name" error={fieldErrors.studentName}>
+          <Field label={t.enquiries.capture.studentName} error={fieldErrors.studentName}>
             <Input
               name="studentName"
-              placeholder="Kavya Sharma"
+              placeholder={t.enquiries.capture.studentNamePlaceholder}
               value={values.studentName}
               onChange={(event) => set("studentName", event.target.value)}
               aria-invalid={Boolean(fieldErrors.studentName)}
             />
           </Field>
 
-          <Field label="Interested in" error={fieldErrors.interestedIn} optional>
+          <Field label={t.enquiries.capture.interestedIn} error={fieldErrors.interestedIn} optional>
             <Input
               name="interestedIn"
-              placeholder="Keyboard, weekend batch"
+              placeholder={t.enquiries.capture.interestedInPlaceholder}
               value={values.interestedIn}
               onChange={(event) => set("interestedIn", event.target.value)}
               aria-invalid={Boolean(fieldErrors.interestedIn)}
             />
           </Field>
 
-          <Field label="Note" error={fieldErrors.notes} optional>
+          {/* The free-text field above stays the primary one: a parent often
+              says "something for my 7-year-old" and forcing that into a course
+              would lose it. This records a real course when they name one, so
+              "how many enquiries for Keyboard this month" becomes answerable. */}
+          {courses.length > 0 && (
+            <Field label={t.enquiries.capture.course} error={fieldErrors.courseId} optional>
+              <Select
+                value={values.courseId || null}
+                onValueChange={(value) => set("courseId", (value as string) ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {(value: string | null) =>
+                      courses.find((course) => course.id === value)?.name ??
+                      t.enquiries.capture.coursePlaceholder
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
+          <Field label={t.enquiries.capture.note} error={fieldErrors.notes} optional>
             <Textarea
               name="notes"
               rows={3}
-              placeholder="Walk-in, asked about fees"
+              placeholder={t.enquiries.capture.notePlaceholder}
               value={values.notes}
               onChange={(event) => set("notes", event.target.value)}
               aria-invalid={Boolean(fieldErrors.notes)}
@@ -248,10 +296,10 @@ export function EnquiryCaptureSheet({
               onClick={() => save(true)}
               className="sm:flex-1"
             >
-              {saving === "another" ? "Saving…" : "Save and add another"}
+              {saving === "another" ? t.common.saving : t.enquiries.capture.saveAndAnother}
             </Button>
             <Button type="submit" size="lg" disabled={saving !== null} className="sm:flex-1">
-              {saving === "save" ? "Saving…" : "Save"}
+              {saving === "save" ? t.common.saving : t.enquiries.capture.save}
             </Button>
           </div>
         </form>
@@ -271,11 +319,13 @@ function Field({
   optional?: boolean;
   children: React.ReactNode;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-1.5">
       <Label>
         {label}
-        {optional && <span className="ml-1 text-muted-foreground">(optional)</span>}
+        {optional && <span className="ml-1 text-muted-foreground">({t.common.optional})</span>}
       </Label>
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}

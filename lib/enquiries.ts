@@ -1,14 +1,8 @@
 import { EnquiryStatus, ExperienceLevel } from "@/generated/prisma/enums";
 import { ACADEMY_TIME_ZONE, academyDaysFromToday, startOfAcademyDay } from "@/lib/day";
-
-export const ENQUIRY_STATUS_LABELS: Record<EnquiryStatus, string> = {
-  NEW: "New",
-  CONTACTED: "Contacted",
-  INTERESTED: "Interested",
-  FOLLOW_UP: "Follow-up",
-  ADMITTED: "Converted",
-  LOST: "Lost",
-};
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+import { fill } from "@/lib/i18n/format";
+import { normalizePhone } from "@/lib/validations/enquiry";
 
 /*
   Colors reuse academy-os-landing's "pop" accent palette (pop-blue, pop-orange,
@@ -26,33 +20,50 @@ export const ENQUIRY_STATUS_BADGE_STYLES: Record<EnquiryStatus, string> = {
 
 export const ENQUIRY_STATUS_OPTIONS = Object.values(EnquiryStatus);
 
-export const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
-  NONE: "No experience",
-  BEGINNER: "Beginner",
-  INTERMEDIATE: "Intermediate",
-  ADVANCED: "Advanced",
-};
-
 export const EXPERIENCE_OPTIONS = Object.values(ExperienceLevel);
 
 export type FollowUpTone = "none" | "overdue" | "today" | "tomorrow" | "upcoming";
 
-export function formatFollowUp(followUpDate: Date | null): {
-  label: string;
-  tone: FollowUpTone;
-} {
-  if (!followUpDate) return { label: "—", tone: "none" };
+/*
+  Tone and wording are separated on purpose. The tone is a fact about the date
+  that the server can compute and group by; the wording depends on who is
+  reading and comes out of their dictionary.
+*/
+export function followUpTone(followUpDate: Date | null): FollowUpTone {
+  if (!followUpDate) return "none";
 
   const diffDays = academyDaysFromToday(followUpDate);
+  if (diffDays < 0) return "overdue";
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "tomorrow";
+  return "upcoming";
+}
 
-  if (diffDays < 0) return { label: "Overdue", tone: "overdue" };
-  if (diffDays === 0) return { label: "Today", tone: "today" };
-  if (diffDays === 1) return { label: "Tomorrow", tone: "tomorrow" };
+export function followUpLabel(
+  followUpDate: Date | null,
+  t: Dictionary,
+  intl: string,
+): { label: string; tone: FollowUpTone; title?: string } {
+  const tone = followUpTone(followUpDate);
+  if (!followUpDate) return { label: t.enquiries.followUp.none, tone };
 
-  return {
-    label: formatDate(followUpDate),
-    tone: "upcoming",
-  };
+  const exact = formatDate(followUpDate, intl);
+  switch (tone) {
+    case "overdue":
+      // "Overdue" alone leaves the reader wondering by how much, and the answer
+      // changes what they say when the parent picks up.
+      return {
+        label: t.enquiries.followUp.overdue,
+        tone,
+        title: fill(t.enquiries.followUp.overdueOn, { date: exact }),
+      };
+    case "today":
+      return { label: t.enquiries.followUp.today, tone, title: exact };
+    case "tomorrow":
+      return { label: t.enquiries.followUp.tomorrow, tone, title: exact };
+    default:
+      return { label: fill(t.enquiries.followUp.on, { date: exact }), tone };
+  }
 }
 
 export const FOLLOW_UP_TONE_STYLES: Record<FollowUpTone, string> = {
@@ -63,8 +74,8 @@ export const FOLLOW_UP_TONE_STYLES: Record<FollowUpTone, string> = {
   upcoming: "text-muted-foreground",
 };
 
-export function formatDateTime(date: Date) {
-  return date.toLocaleString("en-IN", {
+export function formatDateTime(date: Date, intl: string) {
+  return date.toLocaleString(intl, {
     timeZone: ACADEMY_TIME_ZONE,
     day: "numeric",
     month: "short",
@@ -74,15 +85,31 @@ export function formatDateTime(date: Date) {
   });
 }
 
-export function formatDate(date: Date) {
+export function formatDate(date: Date, intl: string) {
   const sameYear =
     startOfAcademyDay(date).getUTCFullYear() === startOfAcademyDay().getUTCFullYear();
-  return date.toLocaleDateString("en-IN", {
+  return date.toLocaleDateString(intl, {
     timeZone: ACADEMY_TIME_ZONE,
     day: "numeric",
     month: "short",
     ...(sameYear ? {} : { year: "numeric" }),
   });
+}
+
+/*
+  Phone numbers are stored as bare national digits (see normalizePhone), which
+  a dialler handles fine but WhatsApp does not — wa.me needs the country code.
+  Every number in the product is an Indian mobile today; when that stops being
+  true this is the one place that has to learn about country codes.
+*/
+const DEFAULT_COUNTRY_CODE = "91";
+
+export function telHref(phone: string) {
+  return `tel:${normalizePhone(phone)}`;
+}
+
+export function whatsAppHref(phone: string) {
+  return `https://wa.me/${DEFAULT_COUNTRY_CODE}${normalizePhone(phone)}`;
 }
 
 /*

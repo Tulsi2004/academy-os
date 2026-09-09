@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { errorKey } from "@/lib/i18n/messages";
 
 /*
   The phone number is the key everything else is found by — duplicate detection,
@@ -19,7 +20,12 @@ export function normalizePhone(raw: string): string {
 
 // Indian mobile numbers are 10 digits and start 6-9.
 const INDIAN_MOBILE = /^[6-9]\d{9}$/;
-const PHONE_MESSAGE = "Enter a 10-digit mobile number";
+/*
+  Messages are dictionary keys, not sentences — validation runs on the server
+  where there is no reader and no language yet. `translateMessage` turns them
+  into words in the form that shows them. See lib/i18n/messages.ts.
+*/
+const PHONE_MESSAGE = errorKey("phoneInvalid");
 
 export const phoneSchema = z
   .string()
@@ -36,7 +42,7 @@ const optionalText = (max: number) =>
   z
     .string()
     .trim()
-    .max(max)
+    .max(max, errorKey("tooLong"))
     .transform((value) => value || undefined)
     .optional();
 
@@ -46,7 +52,11 @@ const optionalText = (max: number) =>
   a tenant-isolation hole.
 */
 export const createEnquirySchema = z.object({
-  studentName: z.string().trim().min(1, "Student name is required").max(100),
+  studentName: z
+    .string()
+    .trim()
+    .min(1, errorKey("studentNameRequired"))
+    .max(100, errorKey("tooLong")),
   phone: phoneSchema,
   interestedIn: optionalText(100),
   courseId: optionalText(64),

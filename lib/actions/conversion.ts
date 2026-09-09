@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getOrgContext } from "@/lib/auth/org-context";
 import { convertEnquirySchema } from "@/lib/validations/conversion";
+import { errorKey } from "@/lib/i18n/messages";
 
 export type ConvertEnquiryResult =
   | { ok: true; studentId: string }
@@ -30,7 +31,7 @@ export async function convertEnquiry(
     }
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? "Please check the form and try again.",
+      error: parsed.error.issues[0]?.message ?? errorKey("checkForm"),
       fieldErrors,
     };
   }
@@ -43,9 +44,9 @@ export async function convertEnquiry(
         where: { id: enquiryId, organizationId },
         select: { id: true, convertedStudentId: true, studentName: true },
       });
-      if (!enquiry) throw new ConversionError("Enquiry not found.");
+      if (!enquiry) throw new ConversionError(errorKey("enquiryNotFound"));
       if (enquiry.convertedStudentId) {
-        throw new ConversionError("This enquiry has already been converted.");
+        throw new ConversionError(errorKey("alreadyConverted"));
       }
 
       // 1. Create or reuse the parent, matched on phone within this organization.
@@ -87,7 +88,7 @@ export async function convertEnquiry(
           where: { id: data.batchId, organizationId },
           select: { id: true },
         });
-        if (!batch) throw new ConversionError("That batch no longer exists.");
+        if (!batch) throw new ConversionError(errorKey("batchGone"));
         await tx.enrollment.create({
           data: { organizationId, studentId: student.id, batchId: batch.id },
         });
@@ -133,6 +134,7 @@ export async function convertEnquiry(
     revalidatePath("/enquiries");
     revalidatePath("/enquiries/follow-ups");
     revalidatePath(`/enquiries/${enquiryId}`);
+    revalidatePath("/students");
 
     return { ok: true, studentId };
   } catch (error) {

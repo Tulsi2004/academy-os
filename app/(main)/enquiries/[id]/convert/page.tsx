@@ -1,7 +1,9 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireOrgContext } from "@/lib/auth/org-context";
+import { getDictionary } from "@/lib/i18n/server";
+import { fill } from "@/lib/i18n/format";
 import { prisma } from "@/lib/prisma";
+import { BackLink } from "@/components/enquiries/back-link";
 import { ConvertForm, type BatchOption } from "@/components/enquiries/convert-form";
 
 export default async function ConvertEnquiryPage({
@@ -11,6 +13,7 @@ export default async function ConvertEnquiryPage({
 }) {
   const { id } = await params;
   const { organizationId } = await requireOrgContext();
+  const { t } = await getDictionary();
 
   const enquiry = await prisma.enquiry.findFirst({
     where: { id, organizationId },
@@ -44,17 +47,15 @@ export default async function ConvertEnquiryPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link
+        <BackLink
           href={`/enquiries/${enquiry.id}`}
-          className="text-sm font-medium text-muted-foreground hover:text-foreground"
-        >
-          ← Back to enquiry
-        </Link>
+          label={t.enquiries.convert.back}
+        />
         <h2 className="mt-2 text-2xl font-semibold text-foreground">
-          Convert {enquiry.studentName}
+          {fill(t.enquiries.convert.title, { name: enquiry.studentName })}
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          This creates the student and parent records and closes the enquiry as admitted.
+        <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+          {t.enquiries.convert.subtitle}
         </p>
       </div>
 

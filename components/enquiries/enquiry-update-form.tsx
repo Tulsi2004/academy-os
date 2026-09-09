@@ -4,7 +4,9 @@ import { useActionState } from "react";
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react";
 import type { Enquiry } from "@/generated/prisma/client";
 import { updateEnquiry, type EnquiryActionState } from "@/lib/actions/enquiries";
-import { ENQUIRY_STATUS_LABELS, ENQUIRY_STATUS_OPTIONS } from "@/lib/enquiries";
+import { ENQUIRY_STATUS_OPTIONS } from "@/lib/enquiries";
+import { useLanguage } from "@/lib/i18n/language-provider";
+import { translateMessage } from "@/lib/i18n/messages";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,7 @@ function toDateInputValue(date: Date | null) {
 }
 
 export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
+  const { t } = useLanguage();
   // Status is fixed once the enquiry has become a student — see updateEnquiry.
   const converted = Boolean(enquiry.convertedStudentId);
 
@@ -42,13 +45,13 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
         {state.error && (
           <Alert variant="destructive">
             <AlertCircleIcon />
-            <AlertDescription>{state.error}</AlertDescription>
+            <AlertDescription>{translateMessage(state.error, t)}</AlertDescription>
           </Alert>
         )}
         {state.success && (
           <Alert className="border-[#27af90]/30 bg-[#27af90]/10 text-[#27af90] dark:text-[#4dc9a8] [&_svg]:text-current">
             <CheckCircle2Icon />
-            <AlertDescription className="text-current">Enquiry updated.</AlertDescription>
+            <AlertDescription className="text-current">{t.enquiries.detail.updated}</AlertDescription>
           </Alert>
         )}
       </div>
@@ -65,34 +68,34 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <Label htmlFor="status" className="mb-1.5">
-              Status
+              {t.enquiries.detail.status}
             </Label>
             <Select name="status" defaultValue={enquiry.status} disabled={converted}>
               <SelectTrigger id="status" className="w-full">
                 <SelectValue>
                   {(value: string | null) =>
-                    value ? ENQUIRY_STATUS_LABELS[value as keyof typeof ENQUIRY_STATUS_LABELS] : ""
+                    value ? t.enquiries.status[value as keyof typeof t.enquiries.status] : ""
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {ENQUIRY_STATUS_OPTIONS.map((status) => (
                   <SelectItem key={status} value={status}>
-                    {ENQUIRY_STATUS_LABELS[status]}
+                    {t.enquiries.status[status]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {converted && (
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Fixed — this enquiry has been converted to a student.
+                {t.enquiries.detail.statusFixed}
               </p>
             )}
           </div>
 
           <div>
             <Label htmlFor="followUpDate" className="mb-1.5">
-              Follow-up date
+              {t.enquiries.detail.followUpDate}
             </Label>
             <Input
               id="followUpDate"
@@ -100,27 +103,28 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
               type="date"
               defaultValue={toDateInputValue(enquiry.followUpDate)}
             />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              {t.enquiries.detail.followUpHint}
+            </p>
           </div>
         </div>
 
         <div>
           <Label htmlFor="note" className="mb-1.5">
-            Add a note
+            {t.enquiries.detail.note}
           </Label>
           <Textarea
             id="note"
             name="note"
             rows={4}
-            placeholder="What was discussed, and what happens next."
+            placeholder={t.enquiries.detail.notePlaceholder}
           />
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            Notes are appended to the timeline. Nothing already written is replaced.
-          </p>
+          <p className="mt-1.5 text-xs text-muted-foreground">{t.enquiries.detail.noteHint}</p>
         </div>
       </div>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save changes"}
+      <Button type="submit" size="lg" className="shadow-sm" disabled={pending}>
+        {pending ? t.common.saving : t.enquiries.detail.saveChanges}
       </Button>
     </form>
   );

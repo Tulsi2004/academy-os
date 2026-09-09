@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/layout/brand";
 import { CloseIcon } from "@/components/layout/icons";
 import { matchNavLink, navLinks } from "@/components/layout/nav-links";
+import { useLanguage } from "@/lib/i18n/language-provider";
+import { fill } from "@/lib/i18n/format";
 
 type SidebarProps = {
   mobileOpen: boolean;
@@ -22,6 +24,8 @@ export function Sidebar({
   userEmail,
 }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
+  const closeLabel = t.nav.closeMenu;
 
   const content = (
     <SidebarContent
@@ -57,7 +61,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={closeLabel}
             className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <CloseIcon className="h-5 w-5" />
@@ -86,6 +90,8 @@ function SidebarContent({
   userName: string;
   userEmail: string;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 shrink-0 items-center border-b border-border px-4">
@@ -107,13 +113,14 @@ function SidebarContent({
           {navLinks.map((link) => {
             const active = matchNavLink(pathname, link.href);
             const Icon = link.icon;
+            const label = t.nav[link.labelKey];
             const row = (
               <>
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="min-w-0 flex-1 truncate">{link.label}</span>
+                <span className="min-w-0 flex-1 truncate">{label}</span>
                 {link.comingSoon && (
                   <span className="shrink-0 rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">
-                    Soon
+                    {t.nav.soon}
                   </span>
                 )}
               </>
@@ -126,7 +133,7 @@ function SidebarContent({
                 <li key={link.href}>
                   <span
                     aria-disabled="true"
-                    title={`${link.label} — coming soon`}
+                    title={fill(t.nav.comingSoon, { label })}
                     className="flex cursor-not-allowed select-none items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground/50"
                   >
                     {row}

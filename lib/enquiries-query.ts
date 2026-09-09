@@ -2,6 +2,7 @@ import type { EnquiryWhereInput } from "@/generated/prisma/models";
 import { EnquiryStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { addAcademyDays } from "@/lib/day";
+import { phoneCandidates } from "@/lib/phone-search";
 
 export const ENQUIRIES_PAGE_SIZE = 25;
 
@@ -12,6 +13,11 @@ const CLOSED: EnquiryStatus[] = ["ADMITTED", "LOST"];
 /** Exclusive upper bound for "due today or earlier", in the academy's timezone. */
 function endOfToday(): Date {
   return addAcademyDays(1);
+}
+
+/** Inclusive lower bound for "due today", in the academy's timezone. */
+function startOfToday(): Date {
+  return addAcademyDays(0);
 }
 
 /*
@@ -34,43 +40,16 @@ function notDueWhere(): EnquiryWhereInput {
   };
 }
 
-/*
-  Stored numbers are bare national digits, but a receptionist searching may
-  paste "+91 93266…" or "093266…". Search is partial, so the saved-number
-  normaliser can't be reused directly — it expects a complete number. Instead we
-  try each plausible reading of what was typed.
-*/
-// A shorter fragment than this matches too many numbers to be a useful search.
-const MIN_PHONE_DIGITS = 3;
+/** Strictly before today — the promised date has already gone past. */
+function overdueWhere(): EnquiryWhereInput {
+  return { followUpDate: { lt: startOfToday() }, status: { notIn: CLOSED } };
+}
 
-function phoneCandidates(term: string): string[] {
-  /*
-    Only treat the term as a phone search when the whole thing is a number.
-    Pulling the digits out of any query is wrong: "Test2" would search phones
-    for "2" and match nearly every row.
-  */
-  const compact = term.replace(/[\s()+.-]/g, "");
-  if (!/^\d+$/.test(compact) || compact.length < MIN_PHONE_DIGITS) return [];
-
-  const digits = compact;
-  const candidates = new Set<string>([digits]);
-
-  const withoutTrunk = digits.replace(/^0+/, "");
-  if (withoutTrunk) candidates.add(withoutTrunk);
-
-  // Only treat a leading "91" as the country code when the typed text says so
-  // (a "+91" or "0" prefix) or the number is too long to be national. In a bare
-  // short query, "91…" is far more likely to be the start of the number itself.
-  const hasCountryCode = /^\s*(?:\+\s*91|0)/.test(term) || withoutTrunk.length > 10;
-  if (hasCountryCode && withoutTrunk.startsWith("91")) {
-    const national = withoutTrunk.slice(2);
-    if (national) candidates.add(national);
-  }
-
-  // The derived readings get the same floor as the typed one. Stripping the
-  // zeros off a search for "0000004" leaves "4", which would match almost every
-  // number in the database.
-  return [...candidates].filter((candidate) => candidate.length >= MIN_PHONE_DIGITS);
+function dueTodayWhere(): EnquiryWhereInput {
+  return {
+    followUpDate: { gte: startOfToday(), lt: endOfToday() },
+    status: { notIn: CLOSED },
+  };
 }
 
 function searchWhere(q: string | undefined): EnquiryWhereInput | null {
@@ -84,7 +63,7 @@ function searchWhere(q: string | undefined): EnquiryWhereInput | null {
   return { OR: or };
 }
 
-const ROW_SELECT = {
+export const ROW_SELECT = {
   id: true,
   studentName: true,
   phone: true,
@@ -92,6 +71,10 @@ const ROW_SELECT = {
   status: true,
   followUpDate: true,
   createdAt: true,
+  // The list shows the named course when nobody typed anything into the
+  // free-text field, so a row is never blank in the column that says what the
+  // person actually wants to learn.
+  course: { select: { name: true } },
 } as const;
 
 export type EnquiryListResult = {
@@ -165,4 +148,62 @@ export async function listEnquiries({
   }
 
   return { rows, total, page: current, pageCount, dueCount };
+}
+
+
+export type EnquirySummary = {
+  /** Everything matching the current search, before the status filter. */
+  total: number;
+  overdue: number;
+  dueToday: number;
+  byStatus: Record<EnquiryStatus, number>;
+};
+
+const EMPTY_STATUS_COUNTS = (): Record<EnquiryStatus, number> =>
+  Object.fromEntries(Object.values(EnquiryStatus).map((status) => [status, 0])) as Record<
+    EnquiryStatus,
+    number
+  >;
+
+/*
+  Counts for the attention strip and the filter chips. Deliberately ignores the
+  status filter — a chip that only counted the status you are already looking at
+  would read "All (3)" while showing three of forty rows. It does respect the
+  search, so the chips describe the list you are actually looking at.
+*/
+export async function enquirySummary({
+  organizationId,
+  q,
+}: {
+  organizationId: string;
+  q?: string;
+}): Promise<EnquirySummary> {
+  const filters: EnquiryWhereInput[] = [{ organizationId }];
+  const search = searchWhere(q);
+  if (search) filters.push(search);
+  const base: EnquiryWhereInput = { AND: filters };
+
+  const [grouped, overdue, dueToday] = await Promise.all([
+    prisma.enquiry.groupBy({ by: ["status"], where: base, _count: { _all: true } }),
+    prisma.enquiry.count({ where: { AND: [...filters, overdueWhere()] } }),
+    prisma.enquiry.count({ where: { AND: [...filters, dueTodayWhere()] } }),
+  ]);
+
+  const byStatus = EMPTY_STATUS_COUNTS();
+  let total = 0;
+  for (const row of grouped) {
+    byStatus[row.status] = row._count._all;
+    total += row._count._all;
+  }
+
+  return { total, overdue, dueToday, byStatus };
+}
+
+/*
+  The number on the "To call" tab. Deliberately unfiltered: it answers "how much
+  is waiting for me overall", so it must not shrink because the reader happens to
+  be searching for one name or looking at a single status.
+*/
+export async function dueFollowUpCount(organizationId: string): Promise<number> {
+  return prisma.enquiry.count({ where: { AND: [{ organizationId }, dueFollowUpWhere()] } });
 }
