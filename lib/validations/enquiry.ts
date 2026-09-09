@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { errorKey } from "@/lib/i18n/messages";
+import { EnquiryStatus } from "@/generated/prisma/enums";
+import { errorKey, type ErrorKey } from "@/lib/i18n/messages";
 
 /*
   The phone number is the key everything else is found by — duplicate detection,
@@ -64,3 +65,61 @@ export const createEnquirySchema = z.object({
 });
 
 export type CreateEnquiryInput = z.input<typeof createEnquirySchema>;
+
+
+/*
+  A date typed into a date input can be anything the browser lets through, and a
+  server action is a public endpoint besides. `new Date("")` and `new Date("x")`
+  both produce Invalid Date, which Prisma rejects far downstream as an opaque
+  500 rather than as something the person filling the form can fix.
+*/
+const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
+export function boundedDate({
+  allowFuture = true,
+  withinYears = 5,
+  rangeKey = "dateOutOfRange",
+}: {
+  allowFuture?: boolean;
+  /*
+    How far from today the date may sit. Five years suits a follow-up; a date of
+    birth needs a century, and giving them the same window would have rejected
+    every student older than five.
+  */
+  withinYears?: number;
+  rangeKey?: ErrorKey;
+} = {}) {
+  return z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value ? new Date(value) : undefined))
+    .refine((value) => !value || !Number.isNaN(value.getTime()), errorKey("dateInvalid"))
+    .refine(
+      (value) => allowFuture || !value || value.getTime() <= Date.now(),
+      errorKey("dateFuture"),
+    )
+    /*
+      Catches the typo that a validity check cannot: "20226" parses perfectly
+      and then sits in the follow-up queue for eighteen thousand years. Five
+      years each way is wider than any real follow-up or any living student's
+      date of birth is short.
+    */
+    .refine(
+      (value) => !value || Math.abs(value.getTime() - Date.now()) < withinYears * YEAR_MS,
+      errorKey(rangeKey),
+    );
+}
+
+/*
+  Lives here rather than inline in the action so the browser can run the exact
+  same rules before the round trip — see lib/validations/client.ts.
+*/
+export const updateEnquirySchema = z.object({
+  status: z.enum(EnquiryStatus),
+  followUpDate: boundedDate(),
+  // A new entry for the timeline, not a replacement for what came before. The
+  // cap matches the note on the capture sheet; without one this field accepted
+  // a pasted novel.
+  note: optionalText(1000),
+});

@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { errorKey } from "@/lib/i18n/messages";
 import { EnquiryStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
@@ -10,19 +9,8 @@ import {
   createEnquirySchema,
   isCompletePhone,
   normalizePhone,
+  updateEnquirySchema,
 } from "@/lib/validations/enquiry";
-
-const optionalText = z
-  .string()
-  .trim()
-  .optional()
-  .transform((value) => (value ? value : undefined));
-
-const optionalDate = z
-  .string()
-  .trim()
-  .optional()
-  .transform((value) => (value ? new Date(value) : undefined));
 
 /*
   `error` carries a dictionary key ("errors.checkForm"), not a sentence — the
@@ -161,13 +149,6 @@ export async function findByPhone(rawPhone: string): Promise<PhoneMatch | null> 
 
   return null;
 }
-
-const updateEnquirySchema = z.object({
-  status: z.enum(EnquiryStatus),
-  followUpDate: optionalDate,
-  // A new entry for the timeline, not a replacement for what came before.
-  note: optionalText,
-});
 
 export async function updateEnquiry(
   id: string,

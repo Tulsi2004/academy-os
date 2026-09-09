@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react";
 import type { Enquiry } from "@/generated/prisma/client";
 import { updateEnquiry, type EnquiryActionState } from "@/lib/actions/enquiries";
 import { ENQUIRY_STATUS_OPTIONS } from "@/lib/enquiries";
+import { updateEnquirySchema } from "@/lib/validations/enquiry";
+import { fieldErrorsOf } from "@/lib/validations/client";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import { translateMessage } from "@/lib/i18n/messages";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -36,9 +38,30 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
 
   const updateWithId = updateEnquiry.bind(null, enquiry.id);
   const [state, formAction, pending] = useActionState(updateWithId, initialState);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form
+      action={formAction}
+      onSubmit={(event) => {
+        const data = new FormData(event.currentTarget);
+        const errors = fieldErrorsOf(
+          updateEnquirySchema,
+          {
+            status: data.get("status"),
+            followUpDate: (data.get("followUpDate") as string) || undefined,
+            note: (data.get("note") as string) || undefined,
+          },
+          t,
+        );
+        setFieldErrors(errors);
+        // Stops the action: a date the server is going to reject should not
+        // cost a round trip, and the message belongs under the field that
+        // caused it rather than in the banner at the top.
+        if (Object.keys(errors).length > 0) event.preventDefault();
+      }}
+      className="space-y-5"
+    >
       {/* Always rendered (even when empty) so the fields below never shift position in the
           tree — that shift was causing the browser to lose the just-submitted form values. */}
       <div>
@@ -102,10 +125,15 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
               name="followUpDate"
               type="date"
               defaultValue={toDateInputValue(enquiry.followUpDate)}
+              aria-invalid={Boolean(fieldErrors.followUpDate)}
             />
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              {t.enquiries.detail.followUpHint}
-            </p>
+            {fieldErrors.followUpDate ? (
+              <p className="mt-1.5 text-xs text-destructive">{fieldErrors.followUpDate}</p>
+            ) : (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {t.enquiries.detail.followUpHint}
+              </p>
+            )}
           </div>
         </div>
 
@@ -118,8 +146,13 @@ export function EnquiryUpdateForm({ enquiry }: { enquiry: Enquiry }) {
             name="note"
             rows={4}
             placeholder={t.enquiries.detail.notePlaceholder}
+            aria-invalid={Boolean(fieldErrors.note)}
           />
-          <p className="mt-1.5 text-xs text-muted-foreground">{t.enquiries.detail.noteHint}</p>
+          {fieldErrors.note ? (
+            <p className="mt-1.5 text-xs text-destructive">{fieldErrors.note}</p>
+          ) : (
+            <p className="mt-1.5 text-xs text-muted-foreground">{t.enquiries.detail.noteHint}</p>
+          )}
         </div>
       </div>
 

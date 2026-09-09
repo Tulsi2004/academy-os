@@ -4,7 +4,11 @@ import { getDictionary } from "@/lib/i18n/server";
 import { fill } from "@/lib/i18n/format";
 import { prisma } from "@/lib/prisma";
 import { BackLink } from "@/components/enquiries/back-link";
-import { ConvertForm, type BatchOption } from "@/components/enquiries/convert-form";
+import {
+  StudentIntakeForm,
+  type BatchOption,
+} from "@/components/students/student-intake-form";
+import { convertEnquiry } from "@/lib/actions/conversion";
 
 export default async function ConvertEnquiryPage({
   params,
@@ -59,8 +63,12 @@ export default async function ConvertEnquiryPage({
         </p>
       </div>
 
-      <ConvertForm
-        enquiryId={enquiry.id}
+      <StudentIntakeForm
+        // Bound here so the enquiry id never travels as a form field — a
+        // caller-supplied id in the body would be a tenancy hole.
+        submit={convertEnquiry.bind(null, enquiry.id)}
+        submitLabel={t.enquiries.convert.submit}
+        submittingLabel={t.enquiries.convert.submitting}
         batches={batches}
         defaults={{
           firstName: firstName ?? "",

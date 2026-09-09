@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getOrgContext } from "@/lib/auth/org-context";
 import { createCourseSchema } from "@/lib/validations/course";
+import { errorKey } from "@/lib/i18n/messages";
 
 export type CreateCourseResult =
   | { ok: true; id: string }
@@ -38,7 +39,7 @@ export async function createCourse(input: unknown): Promise<CreateCourseResult> 
     }
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? "Please check the form and try again.",
+      error: parsed.error.issues[0]?.message ?? errorKey("checkForm"),
       fieldErrors,
     };
   }
@@ -55,8 +56,8 @@ export async function createCourse(input: unknown): Promise<CreateCourseResult> 
   });
   if (clash) {
     const message = clash.active
-      ? "A course with this name already exists."
-      : "An archived course already has this name — restore it instead.";
+      ? errorKey("courseExists")
+      : errorKey("courseArchivedExists");
     return { ok: false, error: message, fieldErrors: { name: message } };
   }
 
@@ -85,7 +86,7 @@ export async function setCourseActive(
 ): Promise<CourseActionResult> {
   const { organizationId } = await getOrgContext();
 
-  if (typeof id !== "string" || !id) return { ok: false, error: "Course not found." };
+  if (typeof id !== "string" || !id) return { ok: false, error: errorKey("courseNotFound") };
 
   // `updateMany` scoped to the organization is the tenant check —
   // `update({ where: { id } })` here would write across tenants.
@@ -93,7 +94,7 @@ export async function setCourseActive(
     where: { id, organizationId },
     data: { active: Boolean(active) },
   });
-  if (count === 0) return { ok: false, error: "Course not found." };
+  if (count === 0) return { ok: false, error: errorKey("courseNotFound") };
 
   revalidateCourses();
   return { ok: true };

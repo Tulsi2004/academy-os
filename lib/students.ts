@@ -1,4 +1,4 @@
-import { ACADEMY_TIME_ZONE, startOfAcademyDay } from "@/lib/day";
+import { startOfAcademyDay } from "@/lib/day";
 
 /** A student's display name. `lastName` is optional throughout the product. */
 export function studentName(student: { firstName: string; lastName: string | null }): string {
@@ -19,16 +19,6 @@ export function ageInYears(dateOfBirth: Date, now: Date = new Date()): number {
   if (monthDiff < 0 || (monthDiff === 0 && today.getUTCDate() < born.getUTCDate())) age -= 1;
 
   return Math.max(0, age);
-}
-
-export function formatDateOfBirth(dateOfBirth: Date): string {
-  const formatted = dateOfBirth.toLocaleDateString("en-IN", {
-    timeZone: ACADEMY_TIME_ZONE,
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-  return `${formatted} · ${ageInYears(dateOfBirth)} yrs`;
 }
 
 /*

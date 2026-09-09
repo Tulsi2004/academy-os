@@ -29,7 +29,12 @@ import { useLanguage } from "@/lib/i18n/language-provider";
 import { fill } from "@/lib/i18n/format";
 import { translateFieldErrors, translateMessage } from "@/lib/i18n/messages";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
-import { isCompletePhone, normalizePhone } from "@/lib/validations/enquiry";
+import {
+  createEnquirySchema,
+  isCompletePhone,
+  normalizePhone,
+} from "@/lib/validations/enquiry";
+import { blurErrorFor, fieldErrorsOf } from "@/lib/validations/client";
 
 const EMPTY = { phone: "", studentName: "", interestedIn: "", courseId: "", notes: "" };
 
@@ -113,7 +118,21 @@ export function EnquiryCaptureSheet({
     list behind the sheet can repaint in its own time; the next enquiry should
     never wait for it.
   */
+  // Same rules as the server, run here first: a required field left blank
+  // should not cost a network round trip to find out about.
+  function checkField(field: string) {
+    const message = blurErrorFor(createEnquirySchema, values, field, t);
+    setFieldErrors((current) => ({ ...current, [field]: message }));
+  }
+
   async function save(mode: "save" | "another" | "admit") {
+    const clientErrors = fieldErrorsOf(createEnquirySchema, values, t);
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setError(null);
+      return;
+    }
+
     setSaving(mode);
     setError(null);
     try {
@@ -223,7 +242,7 @@ export function EnquiryCaptureSheet({
             save("save");
           }}
         >
-          <Field label={t.enquiries.capture.phone} error={fieldErrors.phone}>
+          <Field label={t.enquiries.capture.phone} error={fieldErrors.phone} required>
             <Input
               ref={phoneRef}
               name="phone"
@@ -233,26 +252,29 @@ export function EnquiryCaptureSheet({
               placeholder={t.enquiries.capture.phonePlaceholder}
               value={values.phone}
               onChange={(event) => set("phone", event.target.value)}
+              onBlur={() => checkField("phone")}
               aria-invalid={Boolean(fieldErrors.phone)}
             />
           </Field>
 
-          <Field label={t.enquiries.capture.studentName} error={fieldErrors.studentName}>
+          <Field label={t.enquiries.capture.studentName} error={fieldErrors.studentName} required>
             <Input
               name="studentName"
               placeholder={t.enquiries.capture.studentNamePlaceholder}
               value={values.studentName}
               onChange={(event) => set("studentName", event.target.value)}
+              onBlur={() => checkField("studentName")}
               aria-invalid={Boolean(fieldErrors.studentName)}
             />
           </Field>
 
-          <Field label={t.enquiries.capture.interestedIn} error={fieldErrors.interestedIn} optional>
+          <Field label={t.enquiries.capture.interestedIn} error={fieldErrors.interestedIn}>
             <Input
               name="interestedIn"
               placeholder={t.enquiries.capture.interestedInPlaceholder}
               value={values.interestedIn}
               onChange={(event) => set("interestedIn", event.target.value)}
+              onBlur={() => checkField("interestedIn")}
               aria-invalid={Boolean(fieldErrors.interestedIn)}
             />
           </Field>
@@ -262,7 +284,7 @@ export function EnquiryCaptureSheet({
               would lose it. This records a real course when they name one, so
               "how many enquiries for Keyboard this month" becomes answerable. */}
           {courses.length > 0 && (
-            <Field label={t.enquiries.capture.course} error={fieldErrors.courseId} optional>
+            <Field label={t.enquiries.capture.course} error={fieldErrors.courseId}>
               <Select
                 value={values.courseId || null}
                 onValueChange={(value) => set("courseId", (value as string) ?? "")}
@@ -286,13 +308,14 @@ export function EnquiryCaptureSheet({
             </Field>
           )}
 
-          <Field label={t.enquiries.capture.note} error={fieldErrors.notes} optional>
+          <Field label={t.enquiries.capture.note} error={fieldErrors.notes}>
             <Textarea
               name="notes"
               rows={3}
               placeholder={t.enquiries.capture.notePlaceholder}
               value={values.notes}
               onChange={(event) => set("notes", event.target.value)}
+              onBlur={() => checkField("notes")}
               aria-invalid={Boolean(fieldErrors.notes)}
             />
           </Field>
@@ -352,22 +375,28 @@ export function EnquiryCaptureSheet({
 function Field({
   label,
   error,
-  optional,
+  required,
   children,
 }: {
   label: string;
   error?: string;
-  optional?: boolean;
+  // Two of the five fields are required, so those are the ones that carry a
+  // tag — the same convention as the admission form this sheet can hand off to.
+  required?: boolean;
   children: React.ReactNode;
 }) {
   const { t } = useLanguage();
 
   return (
     <div className="space-y-1.5">
-      <Label>
-        {label}
-        {optional && <span className="ml-1 text-muted-foreground">({t.common.optional})</span>}
-      </Label>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <Label>{label}</Label>
+        {required && (
+          <span className="text-[11px] font-medium text-[#f87483] dark:text-[#f8919c]">
+            {t.common.required}
+          </span>
+        )}
+      </div>
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

@@ -15,6 +15,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { createCourse } from "@/lib/actions/courses";
+import { createCourseSchema } from "@/lib/validations/course";
+import { blurErrorFor, fieldErrorsOf } from "@/lib/validations/client";
+import { useLanguage } from "@/lib/i18n/language-provider";
+import { translateFieldErrors, translateMessage } from "@/lib/i18n/messages";
 
 const EMPTY = { name: "", description: "" };
 
@@ -31,6 +35,7 @@ export function CourseCreateSheet({
   className?: string;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState(EMPTY);
   const [error, setError] = useState<string | null>(null);
@@ -53,14 +58,28 @@ export function CourseCreateSheet({
     setJustSaved(null);
   }
 
+  function checkField(field: string) {
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: blurErrorFor(createCourseSchema, values, field, t),
+    }));
+  }
+
   async function save(addAnother: boolean) {
+    const clientErrors = fieldErrorsOf(createCourseSchema, values, t);
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setError(null);
+      return;
+    }
+
     setSaving(addAnother ? "another" : "save");
     setError(null);
     try {
       const result = await createCourse(values);
       if (!result.ok) {
-        setError(result.error);
-        setFieldErrors(result.fieldErrors ?? {});
+        setError(translateMessage(result.error, t));
+        setFieldErrors(translateFieldErrors(result.fieldErrors, t));
         return;
       }
 
@@ -78,7 +97,7 @@ export function CourseCreateSheet({
 
       router.refresh();
     } catch {
-      setError("Could not save the course. Check your connection and try again.");
+      setError(t.errors.courseSaveFailed);
     } finally {
       setSaving(null);
     }
@@ -125,6 +144,7 @@ export function CourseCreateSheet({
               placeholder="Bharatanatyam"
               value={values.name}
               onChange={(event) => set("name", event.target.value)}
+              onBlur={() => checkField("name")}
               aria-invalid={Boolean(fieldErrors.name)}
             />
           </Field>
@@ -136,6 +156,7 @@ export function CourseCreateSheet({
               placeholder="Classical dance, ages 6 and up"
               value={values.description}
               onChange={(event) => set("description", event.target.value)}
+              onBlur={() => checkField("description")}
               aria-invalid={Boolean(fieldErrors.description)}
             />
           </Field>

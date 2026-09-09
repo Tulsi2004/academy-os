@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { errorKey } from "@/lib/i18n/messages";
 
 // FormData and empty inputs both hand us "", which should mean "not provided"
 // rather than "provided, but blank".
@@ -6,7 +7,7 @@ const optionalText = (max: number) =>
   z
     .string()
     .trim()
-    .max(max)
+    .max(max, errorKey("tooLong"))
     .transform((value) => value || undefined)
     .optional();
 
@@ -20,7 +21,7 @@ const optionalText = (max: number) =>
   a tenant-isolation hole.
 */
 export const createCourseSchema = z.object({
-  name: z.string().trim().min(1, "Course name is required").max(100),
+  name: z.string().trim().min(1, errorKey("nameRequired")).max(100, errorKey("tooLong")),
   description: optionalText(500),
 });
 

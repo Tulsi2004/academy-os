@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { errorKey } from "@/lib/i18n/messages";
 import { ExperienceLevel } from "@/generated/prisma/enums";
-import { phoneSchema } from "@/lib/validations/enquiry";
+import { boundedDate, phoneSchema } from "@/lib/validations/enquiry";
 
 const optionalText = (max: number) =>
   z
@@ -10,13 +10,6 @@ const optionalText = (max: number) =>
     .max(max, errorKey("tooLong"))
     .transform((value) => value || undefined)
     .optional();
-
-const optionalDate = z
-  .string()
-  .trim()
-  .optional()
-  .transform((value) => (value ? new Date(value) : undefined))
-  .refine((value) => !value || !Number.isNaN(value.getTime()), errorKey("dateInvalid"));
 
 const optionalPhone = z
   .string()
@@ -33,15 +26,22 @@ const optionalEmail = z
   .pipe(z.string().email(errorKey("emailInvalid")).optional());
 
 /*
-  This is the one screen where the fuller details are justified — the person is
-  actually enrolling, not walking past the desk. `organizationId` is absent here
-  for the same reason it is absent everywhere else: it comes from the session.
+  What it takes to put a person on the roll, however they got there: admitted
+  from an enquiry, or typed in directly because they have been coming to class
+  since before the academy had software. One schema, because the resulting
+  Student and Parent rows are identical either way — only the paperwork behind
+  them differs.
+
+  `organizationId` is absent here for the same reason it is absent everywhere
+  else: it comes from the session.
 */
-export const convertEnquirySchema = z.object({
+export const studentIntakeSchema = z.object({
   // Student
   firstName: z.string().trim().min(1, errorKey("firstNameRequired")).max(60, errorKey("tooLong")),
   lastName: optionalText(60),
-  dateOfBirth: optionalDate,
+  // Nobody enrolling was born tomorrow, and nobody was born in 1830 — but the
+  // window has to be a century wide, not the five years a follow-up gets.
+  dateOfBirth: boundedDate({ allowFuture: false, withinYears: 120, rangeKey: "dateInvalid" }),
   experience: z
     .string()
     .trim()
@@ -87,4 +87,12 @@ export const convertEnquirySchema = z.object({
     ),
 });
 
-export type ConvertEnquiryInput = z.input<typeof convertEnquirySchema>;
+/*
+  Conversion adds nothing to the intake beyond the enquiry it came from, and
+  that arrives as a separate argument rather than a form field — a caller-
+  supplied enquiry id in the body would be a tenancy hole.
+*/
+export const convertEnquirySchema = studentIntakeSchema;
+
+export type StudentIntakeInput = z.input<typeof studentIntakeSchema>;
+export type ConvertEnquiryInput = StudentIntakeInput;

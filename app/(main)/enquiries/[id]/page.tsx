@@ -50,14 +50,11 @@ export default async function EnquiryDetailPage({
     : null;
 
   /*
-    Split rather than rendered as a column of em-dashes. An enquiry is captured
-    in ten seconds from a phone number and a name, so most of these are empty
-    most of the time — six dashes down the side of the page look like something
-    failed to load, and bury the two lines that do say something. What is known
-    is laid out to be read; what is missing is one quiet line at the bottom.
+    The phone is deliberately absent: it is already the label on the Call button
+    a few centimetres above, and repeating it here made the one fact every
+    enquiry has look like the only thing worth showing.
   */
   const fields = [
-    { label: t.enquiries.detail.phone, value: enquiry.phone },
     { label: t.enquiries.detail.email, value: enquiry.email },
     { label: t.enquiries.detail.parent, value: enquiry.parentName },
     { label: t.enquiries.detail.interestedIn, value: enquiry.interestedIn },
@@ -74,7 +71,13 @@ export default async function EnquiryDetailPage({
     <div className="space-y-6">
       <BackLink href="/enquiries" label={t.enquiries.backToList} />
 
-      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+      {/*
+        Who they are, how to reach them, and what is known — one card, laid out
+        across the page. As a tall sidebar this was mostly blank space beside a
+        much taller column, because a fresh enquiry is a name and a number and
+        nothing else yet.
+      */}
+      <section className="rounded-xl border border-border bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
@@ -103,8 +106,7 @@ export default async function EnquiryDetailPage({
         </div>
 
         {/* The two things anyone does from this page before reading anything
-            else, so they sit above the fold at full button size rather than as
-            small print beside the phone number. */}
+            else, so they sit above the fold at full button size. */}
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
           <Button
             variant="outline"
@@ -131,7 +133,30 @@ export default async function EnquiryDetailPage({
             {t.enquiries.row.whatsapp}
           </Button>
         </div>
-      </div>
+
+        <div className="mt-4 border-t border-border pt-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t.enquiries.detail.details}
+          </h3>
+          {known.length > 0 && (
+            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
+              {known.map((field) => (
+                <div key={field.label}>
+                  <dt className="text-xs text-muted-foreground">{field.label}</dt>
+                  <dd className="mt-0.5 wrap-break-word text-sm font-medium text-foreground">
+                    {field.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {missing.length > 0 && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              {fill(t.enquiries.detail.notRecorded, { fields: missing.join(", ") })}
+            </p>
+          )}
+        </div>
+      </section>
 
       {converted && (
         <div className="rounded-xl border border-[#27af90]/40 bg-[#27af90]/10 p-4 text-sm text-foreground">
@@ -146,70 +171,40 @@ export default async function EnquiryDetailPage({
       )}
 
       {/*
-        The form is the work, so it takes the main column; the details are a
-        reference sidebar. Previously the two sat in equal halves, which gave
-        a mostly-empty fact list the same weight as the only thing on the page
-        you can actually do.
+        Side by side because they are two halves of the same habit: you write
+        what just happened on the left, against everything that happened before
+        on the right.
       */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <section className="rounded-xl border border-border bg-card p-5">
-            <h3 className="text-base font-semibold text-foreground">
-              {t.enquiries.detail.update}
-            </h3>
-            <div className="mt-4">
-              <EnquiryUpdateForm enquiry={enquiry} />
-            </div>
-          </section>
-
-          <section className="rounded-xl border border-border bg-card p-5">
-            <h3 className="text-base font-semibold text-foreground">
-              {t.enquiries.detail.history}
-            </h3>
-            {enquiry.noteEntries.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                {t.enquiries.detail.noHistory}
-              </p>
-            ) : (
-              <ol className="mt-4 space-y-4">
-                {enquiry.noteEntries.map((note) => (
-                  <li key={note.id} className="border-l-2 border-primary/30 pl-4">
-                    <p className="whitespace-pre-wrap text-sm text-foreground">{note.body}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDateTime(note.createdAt, intl)}
-                      {note.author ? ` · ${note.author.name}` : ""}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-        </div>
-
-        <aside className="h-fit rounded-xl border border-border bg-card p-5">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="rounded-xl border border-border bg-card p-5">
           <h3 className="text-base font-semibold text-foreground">
-            {t.enquiries.detail.details}
+            {t.enquiries.detail.update}
           </h3>
-          <dl className="mt-3 divide-y divide-border">
-            {known.map((field) => (
-              <div key={field.label} className="py-3 first:pt-0 last:pb-0">
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {field.label}
-                </dt>
-                <dd className="mt-1 wrap-break-word text-sm text-foreground">{field.value}</dd>
-              </div>
-            ))}
-          </dl>
-          {missing.length > 0 && (
-            <p
-              className={`text-xs leading-relaxed text-muted-foreground ${
-                known.length > 0 ? "mt-4 border-t border-border pt-3" : "mt-3"
-              }`}
-            >
-              {fill(t.enquiries.detail.notRecorded, { fields: missing.join(", ") })}
-            </p>
+          <div className="mt-4">
+            <EnquiryUpdateForm enquiry={enquiry} />
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h3 className="text-base font-semibold text-foreground">
+            {t.enquiries.detail.history}
+          </h3>
+          {enquiry.noteEntries.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">{t.enquiries.detail.noHistory}</p>
+          ) : (
+            <ol className="mt-4 space-y-4">
+              {enquiry.noteEntries.map((note) => (
+                <li key={note.id} className="border-l-2 border-primary/30 pl-4">
+                  <p className="whitespace-pre-wrap text-sm text-foreground">{note.body}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatDateTime(note.createdAt, intl)}
+                    {note.author ? ` · ${note.author.name}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ol>
           )}
-        </aside>
+        </section>
       </div>
     </div>
   );

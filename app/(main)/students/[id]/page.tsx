@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MessageCircleIcon, PhoneIcon } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireOrgContext } from "@/lib/auth/org-context";
-import { formatDate, formatDateTime } from "@/lib/enquiries";
+import { formatDate, formatDateTime, telHref, whatsAppHref } from "@/lib/enquiries";
 import { getDictionary } from "@/lib/i18n/server";
 import { intlLocale } from "@/lib/i18n/locales";
+import { fill } from "@/lib/i18n/format";
 import { formatInr } from "@/lib/money";
-import { formatDateOfBirth, studentName } from "@/lib/students";
+import { ageInYears, studentName } from "@/lib/students";
+import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/enquiries/back-link";
 
 export const dynamic = "force-dynamic";
 
@@ -75,18 +79,47 @@ export default async function StudentDetailPage({
     .filter((payment) => payment.status === "PAID")
     .reduce((sum, payment) => sum + Number(payment.amount.toString()), 0);
 
+  // The parent's number is the one that gets dialled — the student rarely has
+  // their own, and a child's number is not the one an academy calls about fees.
+  const callablePhone = student.parent?.phone ?? student.phone;
+
+  const dateOfBirth = student.dateOfBirth
+    ? `${formatDate(student.dateOfBirth, intl)} · ${fill(t.students.detail.years, {
+        count: ageInYears(student.dateOfBirth),
+      })}`
+    : null;
+
+  const studentFields = [
+    { label: t.students.detail.phone, value: student.phone },
+    { label: t.students.detail.email, value: student.email },
+    { label: t.students.detail.dateOfBirth, value: dateOfBirth },
+    {
+      label: t.students.detail.experience,
+      value: student.experience ? t.enquiries.experience[student.experience] : null,
+    },
+    { label: t.students.detail.address, value: student.address },
+  ];
+  const known = studentFields.filter((field) => Boolean(field.value));
+  const missing = studentFields.filter((field) => !field.value).map((field) => field.label);
+
+  const parentFields = student.parent
+    ? [
+        { label: t.students.detail.name, value: student.parent.name },
+        { label: t.students.detail.phone, value: student.parent.phone },
+        { label: t.students.detail.email, value: student.parent.email },
+      ].filter((field) => Boolean(field.value))
+    : [];
+
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/students"
-          className="text-sm font-medium text-muted-foreground hover:text-foreground"
-        >
-          ← Back to students
-        </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-foreground">{studentName(student)}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Admitted {formatDateTime(student.createdAt, intl)}
+      <BackLink href="/students" label={t.students.detail.back} />
+
+      <section className="rounded-xl border border-border bg-card p-5 sm:p-6">
+        <h2 className="text-2xl font-semibold text-foreground">{studentName(student)}</h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {fill(t.students.detail.admittedOn, {
+            date: formatDateTime(student.createdAt, intl),
+          })}
           {student.convertedFromEnquiry && (
             <>
               {" · "}
@@ -94,42 +127,87 @@ export default async function StudentDetailPage({
                 href={`/enquiries/${student.convertedFromEnquiry.id}`}
                 className="font-medium text-primary hover:underline"
               >
-                from an enquiry on {formatDate(student.convertedFromEnquiry.createdAt, intl)}
+                {fill(t.students.detail.fromEnquiry, {
+                  date: formatDate(student.convertedFromEnquiry.createdAt, intl),
+                })}
               </Link>
             </>
           )}
         </p>
-      </div>
+
+        {callablePhone && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+            <Button
+              variant="outline"
+              size="lg"
+              nativeButton={false}
+              render={<a href={telHref(callablePhone)} />}
+            >
+              <PhoneIcon aria-hidden="true" />
+              {t.enquiries.row.call} · {callablePhone}
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              nativeButton={false}
+              render={
+                <a
+                  href={whatsAppHref(callablePhone)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
+            >
+              <MessageCircleIcon aria-hidden="true" />
+              {t.enquiries.row.whatsapp}
+            </Button>
+          </div>
+        )}
+
+        {/* Known facts across the card, then one line for what is missing —
+            rather than a column of em-dashes where the eye expects content. */}
+        <div className="mt-4 border-t border-border pt-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t.students.detail.student}
+          </h3>
+          {known.length > 0 && (
+            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
+              {known.map((field) => (
+                <div key={field.label}>
+                  <dt className="text-xs text-muted-foreground">{field.label}</dt>
+                  <dd className="mt-0.5 wrap-break-word text-sm font-medium text-foreground">
+                    {field.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {missing.length > 0 && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              {fill(t.students.detail.notRecorded, { fields: missing.join(", ") })}
+            </p>
+          )}
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Panel title="Student">
-          <dl className="space-y-4 text-sm">
-            <DetailRow label="Phone" value={student.phone} />
-            <DetailRow label="Email" value={student.email} />
-            <DetailRow
-              label="Date of birth"
-              value={student.dateOfBirth ? formatDateOfBirth(student.dateOfBirth) : null}
-            />
-            <DetailRow
-              label="Experience"
-              value={student.experience ? t.enquiries.experience[student.experience] : null}
-            />
-            <DetailRow label="Address" value={student.address} />
-          </dl>
-        </Panel>
-
-        <Panel title="Parent / guardian">
-          {student.parent ? (
+        <Panel title={t.students.detail.parent}>
+          {parentFields.length > 0 ? (
             <>
-              <dl className="space-y-4 text-sm">
-                <DetailRow label="Name" value={student.parent.name} />
-                <DetailRow label="Phone" value={student.parent.phone} />
-                <DetailRow label="Email" value={student.parent.email} />
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {parentFields.map((field) => (
+                  <div key={field.label}>
+                    <dt className="text-xs text-muted-foreground">{field.label}</dt>
+                    <dd className="mt-0.5 wrap-break-word text-sm font-medium text-foreground">
+                      {field.value}
+                    </dd>
+                  </div>
+                ))}
               </dl>
               {siblings.length > 0 && (
                 <div className="mt-4 border-t border-border pt-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Also enrolled
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t.students.title}
                   </p>
                   <ul className="mt-2 space-y-1">
                     {siblings.map((sibling) => (
@@ -147,60 +225,60 @@ export default async function StudentDetailPage({
               )}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No parent on file.</p>
+            <p className="text-sm text-muted-foreground">{t.common.none}</p>
+          )}
+        </Panel>
+
+        <Panel title={t.students.detail.batches}>
+          {student.enrollments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t.students.detail.noBatches}</p>
+          ) : (
+            <ul className="space-y-3">
+              {student.enrollments.map((enrollment) => (
+                <li
+                  key={enrollment.id}
+                  className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-3 last:border-0 last:pb-0"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {enrollment.batch.course.name} — {enrollment.batch.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {enrollment.batch.teacher?.name ?? t.common.notSet} ·{" "}
+                      {formatDate(enrollment.enrolledAt, intl)}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {enrollment.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </Panel>
       </div>
 
-      <Panel title="Batches">
-        {student.enrollments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Not enrolled in a batch yet. Batches can be assigned once that module is built.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {student.enrollments.map((enrollment) => (
-              <li
-                key={enrollment.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-3 last:border-0 last:pb-0"
-              >
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {enrollment.batch.course.name} — {enrollment.batch.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {enrollment.batch.teacher?.name ?? "No teacher assigned"} · enrolled{" "}
-                    {formatDate(enrollment.enrolledAt, intl)}
-                  </p>
-                </div>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {enrollment.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-
       <Panel
-        title="Payments"
+        title={t.students.detail.payments}
         aside={
           paidTotal > 0 ? (
-            <span className="text-sm text-muted-foreground">{formatInr(paidTotal)} received</span>
+            <span className="text-sm text-muted-foreground">
+              {fill(t.students.detail.received, { amount: formatInr(paidTotal) })}
+            </span>
           ) : null
         }
       >
         {student.payments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No payments recorded.</p>
+          <p className="text-sm text-muted-foreground">{t.students.detail.noPayments}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-120 text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="py-2 pr-4 font-medium">Type</th>
-                  <th className="py-2 pr-4 font-medium">Amount</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 font-medium">Date</th>
+                  <th className="py-2 pr-4 font-medium">{t.students.detail.paymentType}</th>
+                  <th className="py-2 pr-4 font-medium">{t.students.detail.paymentAmount}</th>
+                  <th className="py-2 pr-4 font-medium">{t.students.detail.paymentStatus}</th>
+                  <th className="py-2 font-medium">{t.students.detail.paymentDate}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -211,7 +289,7 @@ export default async function StudentDetailPage({
                       {formatInr(payment.amount)}
                     </td>
                     <td className="py-2 pr-4 text-muted-foreground">{payment.status}</td>
-                    <td className="py-2 text-muted-foreground">
+                    <td className="py-2 whitespace-nowrap text-muted-foreground">
                       {formatDate(payment.paidAt ?? payment.createdAt, intl)}
                     </td>
                   </tr>
@@ -237,19 +315,10 @@ function Panel({
   return (
     <section className="h-fit rounded-xl border border-border bg-card p-5">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
         {aside}
       </div>
       <div className="mt-4">{children}</div>
     </section>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium text-foreground">{value || "—"}</dd>
-    </div>
   );
 }

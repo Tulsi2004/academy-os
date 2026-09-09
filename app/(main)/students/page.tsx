@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { UserPlusIcon } from "lucide-react";
 import { requireOrgContext } from "@/lib/auth/org-context";
 import { studentsHref } from "@/lib/students";
 import { listStudents } from "@/lib/students-query";
 import { StudentsSearch } from "@/components/students/students-search";
 import { StudentsTable } from "@/components/students/students-table";
-import { getLocale } from "@/lib/i18n/server";
+import { Button } from "@/components/ui/button";
+import { getDictionary } from "@/lib/i18n/server";
 import { intlLocale } from "@/lib/i18n/locales";
+import { pluralize } from "@/lib/i18n/format";
 
 export const dynamic = "force-dynamic";
 
@@ -18,32 +21,46 @@ export default async function StudentsPage({
   const requestedPage = Number.parseInt(page ?? "1", 10);
 
   const { organizationId } = await requireOrgContext();
-  const intl = intlLocale(await getLocale());
-  const result = await listStudents({
-    organizationId,
-    q,
-    page: Number.isFinite(requestedPage) ? requestedPage : 1,
-  });
+  const [{ locale, t }, result] = await Promise.all([
+    getDictionary(),
+    listStudents({
+      organizationId,
+      q,
+      page: Number.isFinite(requestedPage) ? requestedPage : 1,
+    }),
+  ]);
+  const intl = intlLocale(locale);
 
   const searching = Boolean(q?.trim());
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-foreground">Students</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Everyone who has been admitted. Search by student name, parent name or either phone
-          number.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground">{t.students.title}</h2>
+          <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+            {t.students.subtitle}
+          </p>
+        </div>
+        <Button
+          size="lg"
+          className="shadow-sm"
+          nativeButton={false}
+          render={<Link href="/students/new" />}
+        >
+          <UserPlusIcon aria-hidden="true" />
+          {t.students.newStudent}
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <StudentsSearch />
         {result.total > 0 && (
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{result.total}</span>{" "}
-            {result.total === 1 ? "student" : "students"}
-            {searching ? " matching" : ""}
+            {pluralize(
+              { one: t.students.countOne, other: t.students.countOther },
+              result.total,
+            )}
           </p>
         )}
       </div>
@@ -53,18 +70,18 @@ export default async function StudentsPage({
       {result.pageCount > 1 && (
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            Page {result.page} of {result.pageCount}
+            {result.page} / {result.pageCount}
           </p>
           <div className="flex items-center gap-2">
             <PageLink
               href={studentsHref({ q, page: result.page - 1 })}
               disabled={result.page <= 1}
-              label="Previous"
+              label={t.common.previous}
             />
             <PageLink
               href={studentsHref({ q, page: result.page + 1 })}
               disabled={result.page >= result.pageCount}
-              label="Next"
+              label={t.common.next}
             />
           </div>
         </div>
